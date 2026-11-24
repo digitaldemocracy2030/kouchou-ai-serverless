@@ -104,6 +104,7 @@ export type AggregationInput = {
   labels: LabellingResult;
   overviewText: string;
   chatModel: string;
+  chatInBrowser?: boolean;
   embeddingModel: string;
   workers: number;
   embeddedAtLocal?: boolean;
@@ -198,7 +199,9 @@ export function aggregation(input: AggregationInput): Result {
   }
 
   // ---- intro(本家 create_custom_intro と同じ文面) ----
-  const llmProviderDisplay = `OpenAI 互換 API (${input.chatModel})`;
+  const llmProviderDisplay = input.chatInBrowser
+    ? `ブラウザ内実行 (${input.chatModel})`
+    : `OpenAI 互換 API (${input.chatModel})`;
   const customIntro = `${project.intro}\n分析対象となったデータの件数は${comments.length}件で、これらのデータに対して${llmProviderDisplay}を用いて${table.argIds.length}件の意見（議論）を抽出し、クラスタリングを行った。\n`;
 
   const config: ResultConfig = {

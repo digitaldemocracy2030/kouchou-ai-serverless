@@ -7,6 +7,7 @@ import type {
   Project,
 } from "../../types/project";
 import type { Result } from "../../types/result";
+import { isGeminiNano } from "../llm/geminiNano";
 import { parseOverviewResponse } from "../llm/jsonParse";
 import { isLocalEmbedding } from "../llm/localEmbedding";
 import { chatCacheKey, embeddingCacheKey, extractionCacheKey, cacheKey as key } from "./cacheKeys";
@@ -113,6 +114,7 @@ export async function runPipeline(project: Project, deps: OrchestratorDeps): Pro
     labels,
     overviewText,
     chatModel: ctx.chat.model,
+    chatInBrowser: isGeminiNano(ctx.chat),
     embeddingModel: ctx.embedding.model,
     workers: ctx.concurrency,
     embeddedAtLocal: isLocalEmbedding(ctx.embedding),
