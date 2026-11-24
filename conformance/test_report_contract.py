@@ -151,7 +151,7 @@ def check_report(report, case):
 
 
 def check_public(report, output):
-    assert output["schema_version"] == 1
+    assert output["schema_version"] == 2
     arg_ids = {argument["arg_id"] for argument in output["arguments"]}
     for property_name, values_by_arg in output["propertyMap"].items():
         unknown_ids = values_by_arg.keys() - arg_ids

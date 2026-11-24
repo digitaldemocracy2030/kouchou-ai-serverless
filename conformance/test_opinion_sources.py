@@ -56,6 +56,7 @@ def project_report(report):
         edges.update((argument["arg_id"], source) for source in ids)
         relation_count += len(ids)
     return {
+        "schemaVersion": report["schema_version"],
         "arguments": arguments,
         "comments": report["comments"],
         "inputCount": report.get("comment_num"),
@@ -84,6 +85,7 @@ def check_case(case):
             **case,
             "legacyReport": json.dumps(
                 {
+                    "schema_version": 1,
                     "arguments": [
                         {
                             "argument": arg["arg_id"],
@@ -201,6 +203,10 @@ def test_legacy_single_id_and_plural_precedence():
                 {"arg_id": "F", "comment_id": "unused", "comment_ids": []},
                 {"arg_id": "G", "comment_id": None},
                 {"arg_id": "H"},
+                {"arg_id": "I", "comment_id": 7.0},
+                {"arg_id": "J", "comment_id": -7.0},
+                {"arg_id": "K", "comment_id": -0.0},
+                {"arg_id": "L", "comment_id": 9_007_199_254_740_991.0},
             ],
             "relations": None,
             "comments": [{"id": "185001345000000001", "body": "旧レポートの原文"}],
@@ -215,6 +221,7 @@ def test_legacy_single_id_and_plural_precedence():
     [
         {"comment_id": True},
         {"comment_id": 7.5},
+        {"comment_id": 9_007_199_254_740_992.0},
         {"comment_ids": ["001", ""]},
         {"comment_ids": [1]},
     ],

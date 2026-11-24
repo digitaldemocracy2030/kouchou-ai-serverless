@@ -24,7 +24,7 @@ jobs:
         with:
           repository: digitaldemocracy2030/kouchou-ai
           # PR と push は確認済みの版。定期・手動実行は本家 main の変更を検査する。
-          ref: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'main' || 'c104fa706fa0ceaf0c763b7f518cdba3146bb84a' }}
+          ref: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'main' || '1fd2be9a4722713de3b342ff3080d55750fe9119' }}
           path: kouchou-ai
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7

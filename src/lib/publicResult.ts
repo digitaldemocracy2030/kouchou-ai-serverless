@@ -1,7 +1,7 @@
 import type { Result, ResultConfig } from "../types/result";
 import { commentSourceFields, readCommentIds } from "./opinionSources";
 
-// 本体 public_result.json schema_version=1 の公開フィールドだけを写す。
+// 本体 public_result.json schema_version=2 の公開フィールドだけを写す。
 const ARGUMENT_KEYS = ["arg_id", "argument", "x", "y", "p", "cluster_ids", "attributes", "url"] as const;
 const CLUSTER_KEYS = ["level", "id", "label", "takeaway", "value", "parent", "density_rank_percentile"] as const;
 const CONFIG_KEYS = [
@@ -49,7 +49,7 @@ export function buildPublicResult(result: Result): Result {
     return { ...pick(arg, ARGUMENT_KEYS), ...commentSourceFields(ids) };
   });
   return {
-    schema_version: 1,
+    schema_version: 2,
     arguments: args as unknown as Result["arguments"],
     clusters: result.clusters.map((cluster) => pick(cluster, CLUSTER_KEYS)) as unknown as Result["clusters"],
     comments: includeComments
