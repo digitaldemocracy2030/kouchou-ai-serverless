@@ -1,0 +1,19 @@
+{
+  "title": "適合性テスト",
+  "question": "まちの公園について、どう思いますか？",
+  "intro": "公園の使い方についての意見を集めた。",
+  "model": "gpt-4o-mini",
+  "enable_original_comments": false,
+  "id": "duplicate-across-comments",
+  "description": "別々の回答から同じ文面の意見が出る場合。抽出結果（意見と回答の対応）だけを比べる",
+  "csv": "comment-id,comment-body,年代\n1,公園にベンチを増やしてほしい。照明を明るくしてほしい。,30代\n2,公園にベンチを増やしてほしい。,40代\n3,トイレを清潔にしてほしい。,50代\n",
+  "attribute_columns": [
+    "年代"
+  ],
+  "cluster_nums": [
+    2,
+    4
+  ],
+  "sampling_num": 30,
+  "downstream": false
+}

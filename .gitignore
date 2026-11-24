@@ -14,3 +14,4 @@ coverage/
 # デバッグの一時出力(スクリプトは testdata/ に書く)
 testdata/
 scratch-*
+__pycache__/

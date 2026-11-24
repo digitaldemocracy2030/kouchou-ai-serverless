@@ -1,0 +1,1052 @@
+{
+  "kouchou_ai_commit": "3649fe417d2ee441e3475350e89ff6f4b35980e8",
+  "generator": "conformance/generate_expected.py",
+  "case": "basic",
+  "extraction": {
+    "args": [
+      {
+        "arg_id": "A007_0",
+        "argument": "公園にベンチを増やしてほしい。"
+      },
+      {
+        "arg_id": "A007_1",
+        "argument": "夜は照明が暗くて怖い。"
+      },
+      {
+        "arg_id": "A12_0",
+        "argument": "子どもが遊べる芝生広場がほしい。"
+      },
+      {
+        "arg_id": "Ac-3_0",
+        "argument": "ボール遊びを禁止しないでほしい。"
+      },
+      {
+        "arg_id": "Ac-3_1",
+        "argument": "犬の散歩コースを整えてほしい。"
+      },
+      {
+        "arg_id": "A5_0",
+        "argument": "トイレをもっと清潔にしてほしい。"
+      },
+      {
+        "arg_id": "A5_2",
+        "argument": "木陰を増やしてほしい。"
+      },
+      {
+        "arg_id": "A7_0",
+        "argument": "駐輪場が足りない。"
+      },
+      {
+        "arg_id": "A7_1",
+        "argument": "売店があると便利だ。"
+      },
+      {
+        "arg_id": "A8_0",
+        "argument": "花壇の手入れを続けてほしい。"
+      },
+      {
+        "arg_id": "A9_0",
+        "argument": "遊具が古くて危ない。"
+      },
+      {
+        "arg_id": "A9_1",
+        "argument": "水飲み場を直してほしい。"
+      },
+      {
+        "arg_id": "A10_0",
+        "argument": "イベントを増やしてほしい。"
+      },
+      {
+        "arg_id": "A10_1",
+        "argument": "地域の人と話せる場がほしい。"
+      },
+      {
+        "arg_id": "A11_0",
+        "argument": "ゴミ箱が少ない。"
+      },
+      {
+        "arg_id": "A11_1",
+        "argument": "夜の騒音が気になる。"
+      },
+      {
+        "arg_id": "A13_0",
+        "argument": "バーベキューができる場所がほしい。"
+      }
+    ],
+    "relations": [
+      {
+        "arg_id": "A007_0",
+        "comment_id": "007"
+      },
+      {
+        "arg_id": "A007_1",
+        "comment_id": "007"
+      },
+      {
+        "arg_id": "A12_0",
+        "comment_id": "12"
+      },
+      {
+        "arg_id": "Ac-3_0",
+        "comment_id": "c-3"
+      },
+      {
+        "arg_id": "Ac-3_1",
+        "comment_id": "c-3"
+      },
+      {
+        "arg_id": "A5_0",
+        "comment_id": "5"
+      },
+      {
+        "arg_id": "A5_2",
+        "comment_id": "5"
+      },
+      {
+        "arg_id": "A7_0",
+        "comment_id": "7"
+      },
+      {
+        "arg_id": "A7_1",
+        "comment_id": "7"
+      },
+      {
+        "arg_id": "A8_0",
+        "comment_id": "8"
+      },
+      {
+        "arg_id": "A9_0",
+        "comment_id": "9"
+      },
+      {
+        "arg_id": "A9_1",
+        "comment_id": "9"
+      },
+      {
+        "arg_id": "A10_0",
+        "comment_id": "10"
+      },
+      {
+        "arg_id": "A10_1",
+        "comment_id": "10"
+      },
+      {
+        "arg_id": "A11_0",
+        "comment_id": "11"
+      },
+      {
+        "arg_id": "A11_1",
+        "comment_id": "11"
+      },
+      {
+        "arg_id": "A13_0",
+        "comment_id": "13"
+      }
+    ]
+  },
+  "clustering": [
+    {
+      "arg_id": "A007_0",
+      "x": 0.3,
+      "y": 0.0,
+      "cluster_ids": [
+        "1_1",
+        "2_0"
+      ]
+    },
+    {
+      "arg_id": "A007_1",
+      "x": 10.270151,
+      "y": 0.420735,
+      "cluster_ids": [
+        "1_1",
+        "2_1"
+      ]
+    },
+    {
+      "arg_id": "A12_0",
+      "x": 19.708697,
+      "y": 0.636508,
+      "cluster_ids": [
+        "1_2",
+        "2_2"
+      ]
+    },
+    {
+      "arg_id": "Ac-3_0",
+      "x": -0.890993,
+      "y": 10.127008,
+      "cluster_ids": [
+        "1_2",
+        "2_3"
+      ]
+    },
+    {
+      "arg_id": "Ac-3_1",
+      "x": 0.093625,
+      "y": 0.337245,
+      "cluster_ids": [
+        "1_1",
+        "2_0"
+      ]
+    },
+    {
+      "arg_id": "A5_0",
+      "x": 9.633548,
+      "y": 0.410138,
+      "cluster_ids": [
+        "1_1",
+        "2_1"
+      ]
+    },
+    {
+      "arg_id": "A5_2",
+      "x": 19.25939,
+      "y": -0.118309,
+      "cluster_ids": [
+        "1_2",
+        "2_2"
+      ]
+    },
+    {
+      "arg_id": "A7_0",
+      "x": -0.380759,
+      "y": 9.129642,
+      "cluster_ids": [
+        "1_2",
+        "2_3"
+      ]
+    },
+    {
+      "arg_id": "A7_1",
+      "x": -0.342756,
+      "y": 0.206201,
+      "cluster_ids": [
+        "1_1",
+        "2_0"
+      ]
+    },
+    {
+      "arg_id": "A8_0",
+      "x": 9.461945,
+      "y": -0.265512,
+      "cluster_ids": [
+        "1_1",
+        "2_1"
+      ]
+    },
+    {
+      "arg_id": "A9_0",
+      "x": 19.910278,
+      "y": -0.794953,
+      "cluster_ids": [
+        "1_2",
+        "2_2"
+      ]
+    },
+    {
+      "arg_id": "A9_1",
+      "x": 0.775566,
+      "y": 9.368733,
+      "cluster_ids": [
+        "1_2",
+        "2_3"
+      ]
+    },
+    {
+      "arg_id": "A10_0",
+      "x": -0.32667,
+      "y": -0.309495,
+      "cluster_ids": [
+        "1_1",
+        "2_0"
+      ]
+    },
+    {
+      "arg_id": "A10_1",
+      "x": 10.121233,
+      "y": -0.638594,
+      "cluster_ids": [
+        "1_1",
+        "2_1"
+      ]
+    },
+    {
+      "arg_id": "A11_0",
+      "x": 20.788357,
+      "y": -0.317795,
+      "cluster_ids": [
+        "1_2",
+        "2_2"
+      ]
+    },
+    {
+      "arg_id": "A11_1",
+      "x": 0.856511,
+      "y": 10.607362,
+      "cluster_ids": [
+        "1_2",
+        "2_3"
+      ]
+    },
+    {
+      "arg_id": "A13_0",
+      "x": 0.234258,
+      "y": -0.441727,
+      "cluster_ids": [
+        "1_1",
+        "2_0"
+      ]
+    }
+  ],
+  "hierarchical_result": {
+    "arguments": [
+      {
+        "arg_id": "A007_0",
+        "argument": "公園にベンチを増やしてほしい。",
+        "comment_id": "007",
+        "x": 0.3,
+        "y": 0.0,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_1",
+          "2_0"
+        ],
+        "attributes": {
+          "年代": "30代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A007_1",
+        "argument": "夜は照明が暗くて怖い。",
+        "comment_id": "007",
+        "x": 10.270151,
+        "y": 0.420735,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_1",
+          "2_1"
+        ],
+        "attributes": {
+          "年代": "30代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A12_0",
+        "argument": "子どもが遊べる芝生広場がほしい。",
+        "comment_id": "12",
+        "x": 19.708697,
+        "y": 0.636508,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_2",
+          "2_2"
+        ],
+        "attributes": {
+          "年代": "40代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "Ac-3_0",
+        "argument": "ボール遊びを禁止しないでほしい。",
+        "comment_id": "c-3",
+        "x": -0.890993,
+        "y": 10.127008,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_2",
+          "2_3"
+        ],
+        "attributes": null,
+        "url": null
+      },
+      {
+        "arg_id": "Ac-3_1",
+        "argument": "犬の散歩コースを整えてほしい。",
+        "comment_id": "c-3",
+        "x": 0.093625,
+        "y": 0.337245,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_1",
+          "2_0"
+        ],
+        "attributes": null,
+        "url": null
+      },
+      {
+        "arg_id": "A5_0",
+        "argument": "トイレをもっと清潔にしてほしい。",
+        "comment_id": "5",
+        "x": 9.633548,
+        "y": 0.410138,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_1",
+          "2_1"
+        ],
+        "attributes": {
+          "年代": "60代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A5_2",
+        "argument": "木陰を増やしてほしい。",
+        "comment_id": "5",
+        "x": 19.25939,
+        "y": -0.118309,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_2",
+          "2_2"
+        ],
+        "attributes": {
+          "年代": "60代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A7_0",
+        "argument": "駐輪場が足りない。",
+        "comment_id": "7",
+        "x": -0.380759,
+        "y": 9.129642,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_2",
+          "2_3"
+        ],
+        "attributes": {
+          "年代": "30代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A7_1",
+        "argument": "売店があると便利だ。",
+        "comment_id": "7",
+        "x": -0.342756,
+        "y": 0.206201,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_1",
+          "2_0"
+        ],
+        "attributes": {
+          "年代": "30代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A8_0",
+        "argument": "花壇の手入れを続けてほしい。",
+        "comment_id": "8",
+        "x": 9.461945,
+        "y": -0.265512,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_1",
+          "2_1"
+        ],
+        "attributes": {
+          "年代": "70代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A9_0",
+        "argument": "遊具が古くて危ない。",
+        "comment_id": "9",
+        "x": 19.910278,
+        "y": -0.794953,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_2",
+          "2_2"
+        ],
+        "attributes": {
+          "年代": "40代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A9_1",
+        "argument": "水飲み場を直してほしい。",
+        "comment_id": "9",
+        "x": 0.775566,
+        "y": 9.368733,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_2",
+          "2_3"
+        ],
+        "attributes": {
+          "年代": "40代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A10_0",
+        "argument": "イベントを増やしてほしい。",
+        "comment_id": "10",
+        "x": -0.32667,
+        "y": -0.309495,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_1",
+          "2_0"
+        ],
+        "attributes": {
+          "年代": "20代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A10_1",
+        "argument": "地域の人と話せる場がほしい。",
+        "comment_id": "10",
+        "x": 10.121233,
+        "y": -0.638594,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_1",
+          "2_1"
+        ],
+        "attributes": {
+          "年代": "20代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A11_0",
+        "argument": "ゴミ箱が少ない。",
+        "comment_id": "11",
+        "x": 20.788357,
+        "y": -0.317795,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_2",
+          "2_2"
+        ],
+        "attributes": {
+          "年代": "50代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A11_1",
+        "argument": "夜の騒音が気になる。",
+        "comment_id": "11",
+        "x": 0.856511,
+        "y": 10.607362,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_2",
+          "2_3"
+        ],
+        "attributes": {
+          "年代": "50代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A13_0",
+        "argument": "バーベキューができる場所がほしい。",
+        "comment_id": "13",
+        "x": 0.234258,
+        "y": -0.441727,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_1",
+          "2_0"
+        ],
+        "attributes": {
+          "年代": "30代"
+        },
+        "url": null
+      }
+    ],
+    "clusters": [
+      {
+        "level": 0,
+        "id": "0",
+        "label": "全体",
+        "takeaway": "",
+        "value": 17,
+        "parent": "",
+        "density_rank_percentile": 0
+      },
+      {
+        "level": 1,
+        "id": "1_1",
+        "label": "統合ラベルc8a9e2",
+        "takeaway": "統合説明0d9307b70f62",
+        "value": 9,
+        "parent": "0",
+        "density_rank_percentile": 0.5
+      },
+      {
+        "level": 1,
+        "id": "1_2",
+        "label": "統合ラベルcb63f3",
+        "takeaway": "統合説明dc4c907437eb",
+        "value": 8,
+        "parent": "0",
+        "density_rank_percentile": 1.0
+      },
+      {
+        "level": 2,
+        "id": "2_0",
+        "label": "初期ラベル319739",
+        "takeaway": "初期説明1e3346beced8",
+        "value": 5,
+        "parent": "1_1",
+        "density_rank_percentile": 0.25
+      },
+      {
+        "level": 2,
+        "id": "2_1",
+        "label": "初期ラベルe944e7",
+        "takeaway": "初期説明4b19079af996",
+        "value": 4,
+        "parent": "1_1",
+        "density_rank_percentile": 0.5
+      },
+      {
+        "level": 2,
+        "id": "2_2",
+        "label": "初期ラベル5bb575",
+        "takeaway": "初期説明ca937d6880f1",
+        "value": 4,
+        "parent": "1_2",
+        "density_rank_percentile": 0.75
+      },
+      {
+        "level": 2,
+        "id": "2_3",
+        "label": "初期ラベル9ba94e",
+        "takeaway": "初期説明9845f5bbdc85",
+        "value": 4,
+        "parent": "1_2",
+        "density_rank_percentile": 1.0
+      }
+    ],
+    "comments": {},
+    "propertyMap": {},
+    "translations": {},
+    "overview": "概要e1f0ddfebd73",
+    "comment_num": 12,
+    "config": {
+      "intro": "公園の使い方についての意見を集めた。\n分析対象となったデータの件数は11件で、これらのデータに対してOpenAI API (gpt-4o-mini)を用いて17件の意見（議論）を抽出し、クラスタリングを行った。\n"
+    }
+  },
+  "public_result": {
+    "schema_version": 1,
+    "arguments": [
+      {
+        "arg_id": "A007_0",
+        "argument": "公園にベンチを増やしてほしい。",
+        "comment_id": "007",
+        "x": 0.3,
+        "y": 0.0,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_1",
+          "2_0"
+        ],
+        "attributes": {
+          "年代": "30代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A007_1",
+        "argument": "夜は照明が暗くて怖い。",
+        "comment_id": "007",
+        "x": 10.270151,
+        "y": 0.420735,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_1",
+          "2_1"
+        ],
+        "attributes": {
+          "年代": "30代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A12_0",
+        "argument": "子どもが遊べる芝生広場がほしい。",
+        "comment_id": "12",
+        "x": 19.708697,
+        "y": 0.636508,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_2",
+          "2_2"
+        ],
+        "attributes": {
+          "年代": "40代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "Ac-3_0",
+        "argument": "ボール遊びを禁止しないでほしい。",
+        "comment_id": "c-3",
+        "x": -0.890993,
+        "y": 10.127008,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_2",
+          "2_3"
+        ],
+        "attributes": null,
+        "url": null
+      },
+      {
+        "arg_id": "Ac-3_1",
+        "argument": "犬の散歩コースを整えてほしい。",
+        "comment_id": "c-3",
+        "x": 0.093625,
+        "y": 0.337245,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_1",
+          "2_0"
+        ],
+        "attributes": null,
+        "url": null
+      },
+      {
+        "arg_id": "A5_0",
+        "argument": "トイレをもっと清潔にしてほしい。",
+        "comment_id": "5",
+        "x": 9.633548,
+        "y": 0.410138,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_1",
+          "2_1"
+        ],
+        "attributes": {
+          "年代": "60代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A5_2",
+        "argument": "木陰を増やしてほしい。",
+        "comment_id": "5",
+        "x": 19.25939,
+        "y": -0.118309,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_2",
+          "2_2"
+        ],
+        "attributes": {
+          "年代": "60代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A7_0",
+        "argument": "駐輪場が足りない。",
+        "comment_id": "7",
+        "x": -0.380759,
+        "y": 9.129642,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_2",
+          "2_3"
+        ],
+        "attributes": {
+          "年代": "30代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A7_1",
+        "argument": "売店があると便利だ。",
+        "comment_id": "7",
+        "x": -0.342756,
+        "y": 0.206201,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_1",
+          "2_0"
+        ],
+        "attributes": {
+          "年代": "30代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A8_0",
+        "argument": "花壇の手入れを続けてほしい。",
+        "comment_id": "8",
+        "x": 9.461945,
+        "y": -0.265512,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_1",
+          "2_1"
+        ],
+        "attributes": {
+          "年代": "70代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A9_0",
+        "argument": "遊具が古くて危ない。",
+        "comment_id": "9",
+        "x": 19.910278,
+        "y": -0.794953,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_2",
+          "2_2"
+        ],
+        "attributes": {
+          "年代": "40代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A9_1",
+        "argument": "水飲み場を直してほしい。",
+        "comment_id": "9",
+        "x": 0.775566,
+        "y": 9.368733,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_2",
+          "2_3"
+        ],
+        "attributes": {
+          "年代": "40代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A10_0",
+        "argument": "イベントを増やしてほしい。",
+        "comment_id": "10",
+        "x": -0.32667,
+        "y": -0.309495,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_1",
+          "2_0"
+        ],
+        "attributes": {
+          "年代": "20代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A10_1",
+        "argument": "地域の人と話せる場がほしい。",
+        "comment_id": "10",
+        "x": 10.121233,
+        "y": -0.638594,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_1",
+          "2_1"
+        ],
+        "attributes": {
+          "年代": "20代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A11_0",
+        "argument": "ゴミ箱が少ない。",
+        "comment_id": "11",
+        "x": 20.788357,
+        "y": -0.317795,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_2",
+          "2_2"
+        ],
+        "attributes": {
+          "年代": "50代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A11_1",
+        "argument": "夜の騒音が気になる。",
+        "comment_id": "11",
+        "x": 0.856511,
+        "y": 10.607362,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_2",
+          "2_3"
+        ],
+        "attributes": {
+          "年代": "50代"
+        },
+        "url": null
+      },
+      {
+        "arg_id": "A13_0",
+        "argument": "バーベキューができる場所がほしい。",
+        "comment_id": "13",
+        "x": 0.234258,
+        "y": -0.441727,
+        "p": 0,
+        "cluster_ids": [
+          "0",
+          "1_1",
+          "2_0"
+        ],
+        "attributes": {
+          "年代": "30代"
+        },
+        "url": null
+      }
+    ],
+    "clusters": [
+      {
+        "level": 0,
+        "id": "0",
+        "label": "全体",
+        "takeaway": "",
+        "value": 17,
+        "parent": "",
+        "density_rank_percentile": 0
+      },
+      {
+        "level": 1,
+        "id": "1_1",
+        "label": "統合ラベルc8a9e2",
+        "takeaway": "統合説明0d9307b70f62",
+        "value": 9,
+        "parent": "0",
+        "density_rank_percentile": 0.5
+      },
+      {
+        "level": 1,
+        "id": "1_2",
+        "label": "統合ラベルcb63f3",
+        "takeaway": "統合説明dc4c907437eb",
+        "value": 8,
+        "parent": "0",
+        "density_rank_percentile": 1.0
+      },
+      {
+        "level": 2,
+        "id": "2_0",
+        "label": "初期ラベル319739",
+        "takeaway": "初期説明1e3346beced8",
+        "value": 5,
+        "parent": "1_1",
+        "density_rank_percentile": 0.25
+      },
+      {
+        "level": 2,
+        "id": "2_1",
+        "label": "初期ラベルe944e7",
+        "takeaway": "初期説明4b19079af996",
+        "value": 4,
+        "parent": "1_1",
+        "density_rank_percentile": 0.5
+      },
+      {
+        "level": 2,
+        "id": "2_2",
+        "label": "初期ラベル5bb575",
+        "takeaway": "初期説明ca937d6880f1",
+        "value": 4,
+        "parent": "1_2",
+        "density_rank_percentile": 0.75
+      },
+      {
+        "level": 2,
+        "id": "2_3",
+        "label": "初期ラベル9ba94e",
+        "takeaway": "初期説明9845f5bbdc85",
+        "value": 4,
+        "parent": "1_2",
+        "density_rank_percentile": 1.0
+      }
+    ],
+    "comments": {},
+    "propertyMap": {},
+    "translations": {},
+    "overview": "概要e1f0ddfebd73",
+    "comment_num": 12
+  },
+  "llm_requests": {
+    "extraction": [
+      "公園にベンチを増やしてほしい。夜は照明が暗くて怖い。",
+      "子どもが遊べる芝生広場がほしい。",
+      "ボール遊びを禁止しないでほしい。犬の散歩コースを整えてほしい。",
+      "トイレをもっと清潔にしてほしい。トイレをもっと清潔にしてほしい。木陰を増やしてほしい。",
+      "特になし",
+      "駐輪場が足りない。売店があると便利だ。",
+      "花壇の手入れを続けてほしい。",
+      "遊具が古くて危ない。水飲み場を直してほしい。",
+      "イベントを増やしてほしい。地域の人と話せる場がほしい。",
+      "ゴミ箱が少ない。夜の騒音が気になる。",
+      "バーベキューができる場所がほしい。"
+    ],
+    "initial_labelling": [
+      "イベントを増やしてほしい。\nバーベキューができる場所がほしい。\n公園にベンチを増やしてほしい。\n売店があると便利だ。\n犬の散歩コースを整えてほしい。",
+      "ゴミ箱が少ない。\n子どもが遊べる芝生広場がほしい。\n木陰を増やしてほしい。\n遊具が古くて危ない。",
+      "トイレをもっと清潔にしてほしい。\n地域の人と話せる場がほしい。\n夜は照明が暗くて怖い。\n花壇の手入れを続けてほしい。",
+      "ボール遊びを禁止しないでほしい。\n夜の騒音が気になる。\n水飲み場を直してほしい。\n駐輪場が足りない。"
+    ],
+    "merge_labelling": [
+      "クラスタラベル\n- 初期ラベル319739: 初期説明1e3346beced8\n- 初期ラベルe944e7: 初期説明4b19079af996\nクラスタの意見\nイベントを増やしてほしい。\nトイレをもっと清潔にしてほしい。\nバーベキューができる場所がほしい。\n公園にベンチを増やしてほしい。\n地域の人と話せる場がほしい。\n売店があると便利だ。\n夜は照明が暗くて怖い。\n犬の散歩コースを整えてほしい。\n花壇の手入れを続けてほしい。",
+      "クラスタラベル\n- 初期ラベル5bb575: 初期説明ca937d6880f1\n- 初期ラベル9ba94e: 初期説明9845f5bbdc85\nクラスタの意見\nゴミ箱が少ない。\nボール遊びを禁止しないでほしい。\n夜の騒音が気になる。\n子どもが遊べる芝生広場がほしい。\n木陰を増やしてほしい。\n水飲み場を直してほしい。\n遊具が古くて危ない。\n駐輪場が足りない。"
+    ],
+    "overview": [
+      "# Cluster ?/2: 統合ラベルc8a9e2\n\n統合説明0d9307b70f62\n\n# Cluster ?/2: 統合ラベルcb63f3\n\n統合説明dc4c907437eb\n\n"
+    ]
+  }
+}
