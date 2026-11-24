@@ -21,15 +21,17 @@ describe("detectBodyColumn", () => {
 });
 
 describe("normalizeComments", () => {
-  it("空・空白のみの comment-body を除外する(本家 #583)", () => {
+  it("空・空白のみの回答を除外し、それ以外は前後の空白を含め原文を保持する", () => {
+    const original = "  意見\n　続き \t";
     const rows = [
-      { "comment-id": "1", "comment-body": "意見" },
+      { "comment-id": "1", "comment-body": original },
       { "comment-id": "2", "comment-body": "" },
       { "comment-id": "3", "comment-body": "   " },
       { "comment-id": "4", "comment-body": "別の意見" },
     ];
     const result = normalizeComments(rows, "comment-body", "comment-id", []);
     expect(result.map((c) => c.commentId)).toEqual(["1", "4"]);
+    expect(result[0].body).toBe(original);
   });
 
   it("ID 列がなければ行番号を振る", () => {
