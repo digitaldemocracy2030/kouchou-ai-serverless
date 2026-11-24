@@ -150,6 +150,12 @@ def check_report(report, case):
 
 def check_public(report, output):
     assert output["schema_version"] == 1
+    arg_ids = {argument["arg_id"] for argument in output["arguments"]}
+    for property_name, values_by_arg in output["propertyMap"].items():
+        unknown_ids = values_by_arg.keys() - arg_ids
+        assert not unknown_ids, (
+            f"propertyMap[{property_name!r}] references unknown opinion IDs: {sorted(unknown_ids)}"
+        )
     for collection, identifier, fields in (
         (
             "arguments",
