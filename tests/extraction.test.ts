@@ -84,6 +84,16 @@ describe("extraction", () => {
     await extraction(comments, "prompt", ctx);
     expect(total).toBe(30);
   });
+
+  it("LLM応答内の引用を保持したまま意見を保存する", async () => {
+    const opinion = "意見 <think>引用</think> と ```json を残す";
+    vi.stubGlobal(
+      "fetch",
+      mockChatFetch(() => [opinion]),
+    );
+    const result = await extraction(comments.slice(0, 1), "prompt", makeCtx());
+    expect(result.args[0].argument).toBe(opinion);
+  });
 });
 
 it("正常な0件を診断に残し、失敗はキャッシュしない", async () => {

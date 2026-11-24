@@ -4,6 +4,8 @@ import { buildClusterTable, compositionHash } from "../src/lib/pipeline/clusterT
 import { memoryCheckpoints, type PipelineContext } from "../src/lib/pipeline/context";
 import { initialLabelling, LABEL_ERROR_PLACEHOLDER } from "../src/lib/pipeline/steps/labelling";
 import { overview } from "../src/lib/pipeline/steps/overview";
+import { buildCodebook } from "../src/stance-spectrum/codebook";
+import { parseEnrichment } from "../src/stance-spectrum/enrich";
 import { extractAndEnrich, parseExtractEnrich } from "../src/stance-spectrum/extractEnrich";
 import { CHUNK_STEP } from "../src/stance-spectrum/storageKeys";
 
@@ -43,10 +45,12 @@ describe("ラベルの失敗から再開", () => {
       }),
     );
     await expect(initialLabelling(table, "p", 30, context)).rejects.toThrow();
-    const retry = vi.fn(async () => response({ label: "回復", description: "正常" }));
+    const description = "説明に <think>引用</think> を残す";
+    const retry = vi.fn(async () => response({ label: "回復", description }));
     vi.stubGlobal("fetch", retry);
     const labels = await initialLabelling(table, "p", 30, context);
     expect(labels.map((l) => l.label)).toEqual(["L", "回復"]);
+    expect(labels[1].description).toBe(description);
     expect(retry).toHaveBeenCalledTimes(1);
   });
   it("旧版のプレースホルダも取り直す", async () => {
@@ -84,12 +88,24 @@ describe("概要の形式不正", () => {
       vi.fn(async () => response({ other: "x" })),
     );
     await expect(overview(labels, "p", context)).rejects.toThrow();
-    const fetch = vi.fn(async () => response({ summary: "回復した概要" }));
+    const summary = "回復した概要。タグ名は <think>引用</think>";
+    const fetch = vi.fn(async () => response({ summary }));
     vi.stubGlobal("fetch", fetch);
-    expect(await overview(labels, "p", context)).toBe("回復した概要");
-    expect(await overview(labels, "p", context)).toBe("回復した概要");
+    expect(await overview(labels, "p", context)).toBe(summary);
+    expect(await overview(labels, "p", context)).toBe(summary);
     expect(fetch).toHaveBeenCalledTimes(1);
   });
+});
+
+it("賛否スペクトラムの属性抽出とタグ統合でJSON内の文字列を保持する", async () => {
+  const tag = "話題 <think>引用</think> と ```json";
+  const enriched = parseEnrichment(JSON.stringify({ target: tag, topics: [{ label: tag, weight: 1 }] }));
+  expect(enriched.target).toBe(tag);
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => response({ canonical: [tag], mapping: [{ from: tag, to: tag }] })),
+  );
+  expect((await buildCodebook([enriched], ctx())).topics).toEqual([tag]);
 });
 
 describe("賛否スペクトラムの抽出失敗", () => {
@@ -97,6 +113,12 @@ describe("賛否スペクトラムの抽出失敗", () => {
     { commentId: "1", body: "bad", attributes: {} },
     { commentId: "2", body: "good", attributes: {} },
   ];
+  it("結合抽出で補正が必要でも本文とタグの文字列を保持", () => {
+    const text = '意見 ",]" と <think>引用</think>';
+    const opinion = JSON.stringify({ argument: text, topics: [{ label: text, weight: 1 }] });
+    const parsed = parseExtractEnrich(`{"opinions":[${opinion},]}`);
+    expect(parsed[0]).toMatchObject({ argument: text, enrichment: { topics: [{ label: text, weight: 1 }] } });
+  });
   it("正常0件と区別し、失敗分だけを取り直す", async () => {
     const context = ctx();
     vi.stubGlobal(

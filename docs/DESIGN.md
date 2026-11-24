@@ -137,9 +137,9 @@ Structured Outputs を使う(`../kouchou-ai/packages/analysis-core/src/analysis_
 1. まず `response_format: { type: "json_schema", json_schema: {...} }` で投げる。
 2. プロバイダが非対応(400等)なら `response_format: { type: "json_object" }` にフォールバック、
    さらにダメならプロンプト末尾に「JSONのみで応答せよ」を足して素で投げる。
-3. 応答パースは寛容に: ```json フェンス除去、`<think>...</think>` 除去、
-   末尾カンマ除去、失敗時は該当件のみ空扱い(本家 extraction と同じ思想)。
-   本家の `services/parse_json_list.py` を移植する。
+3. 応答はまずJSONとしてそのまま読む。必要なときは外側のフェンスや先頭の
+   `<think>...</think>` を含む前置きからコンテナを切り出し、文字列外の末尾カンマだけを除く。
+   引用符内の値は書き換えない。途中で切れたJSONやスキーマ不正は工程ごとの失敗処理に渡す。
 
 リトライ: 429/5xx は指数バックオフ(初期1s、最大60s、最大5回)。`Retry-After` を尊重。
 全呼び出しで usage(入出力トークン)を集計し UI に表示する。
