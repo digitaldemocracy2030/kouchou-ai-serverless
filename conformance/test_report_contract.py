@@ -6,6 +6,7 @@ import os
 import subprocess
 from collections import Counter, defaultdict
 from pathlib import Path
+from tempfile import TemporaryFile
 
 import pytest
 from hypothesis import given, settings, strategies as st
@@ -23,6 +24,7 @@ OPINIONS = [
     "バスを増やす",
     "公園の「入口」, 看板を見直す",
     '案内に "英語" と \\ を含める',
+    "資料が `<think>引用</think>` と ```json の例に言及している",
 ]
 
 
@@ -183,15 +185,20 @@ def check_public(report, output):
 
 
 def run_typescript(*args, data=None):
-    process = subprocess.run(
-        [*TS_ADAPTER, *args],
-        cwd=ROOT,
-        input=data,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        timeout=30,
-    )
+    # stdin の同期読み込みが非ブロッキングのパイプで EAGAIN になる環境がある。
+    with TemporaryFile(mode="w+", encoding="utf-8") as stdin:
+        if data is not None:
+            stdin.write(data)
+            stdin.seek(0)
+        process = subprocess.run(
+            [*TS_ADAPTER, *args],
+            cwd=ROOT,
+            stdin=stdin,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=30,
+        )
     assert process.returncode == 0, process.stderr + process.stdout
     return process.stdout
 
