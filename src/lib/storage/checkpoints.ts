@@ -26,12 +26,12 @@ export function dexieCheckpoints(projectId: string): Checkpoints {
 
 export function dexieStepStore(projectId: string): StepStore {
   return {
-    async get(step: PipelineStepName) {
+    async get(step: PipelineStepName, cacheKey?: string) {
       const row = await db.stepResults.get([projectId, step]);
-      return row?.data;
+      return cacheKey === undefined || row?.cacheKey === cacheKey ? row?.data : undefined;
     },
-    async put(step: PipelineStepName, data) {
-      await db.stepResults.put({ projectId, step, data, completedAt: Date.now() });
+    async put(step: PipelineStepName, data, cacheKey?: string) {
+      await db.stepResults.put({ projectId, step, data, cacheKey, completedAt: Date.now() });
     },
   };
 }

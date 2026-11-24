@@ -1,7 +1,7 @@
 import { requestChat, Semaphore } from "../lib/llm/client";
 import { parseJsonObjectLoose } from "../lib/llm/jsonParse";
 import type { PipelineContext } from "../lib/pipeline/context";
-import { throwIfAborted, throwIfCacheOnly } from "../lib/pipeline/context";
+import { settleAll, throwIfAborted, throwIfCacheOnly } from "../lib/pipeline/context";
 import type { CommentRow, ExtractedArgument, Relation } from "../types/project";
 import { fallbackEnrichment, normalizeEnrichment } from "./enrich";
 import { buildExtractEnrichPrompt, EXTRACT_ENRICH_SCHEMA } from "./prompts";
@@ -10,8 +10,8 @@ import type { OpinionEnrichment } from "./types";
 
 // 賛否スペクトラム分析の投入口: 生コメントから「意見抽出 + 構造化属性付与(stance/topics/reasons 等)」を
 // コメント1件=チャット1回でまとめて行う。通常版の extraction には依存しない。
-// - 同一の意見文字列は最初の arg_id に集約(本家 argument_map と同じ)。enrichment は初出を採用
-// - 失敗したコメントは空リスト扱いで続行。全件失敗ならエラー
+// - 同じ回答内の同文だけをまとめる。別回答の文面・属性・enrichment は別々に保持
+// - 失敗は正常0件と区別し、成功分だけ保存してから中断する
 // - チェックポイント: コメント単位(chunkCache step CHUNK_STEP.extract)
 
 /** 1意見ぶんの抽出結果(意見文 + 構造化属性) */
@@ -40,17 +40,20 @@ export async function extractAndEnrich(
 
   // コメント単位で抽出+分類(チェックポイント優先)。結果はコメント順を保つ。
   const perComment: RawOpinion[][] = new Array(comments.length);
-  await Promise.all(
+  await settleAll(
     comments.map((comment, index) =>
       semaphore.run(async () => {
         throwIfAborted(ctx.signal);
         const cached = await ctx.checkpoints.getChunk(CHUNK_STEP.extract, comment.commentId);
-        if (cached !== undefined) {
+        const emptyConfirmed = await ctx.checkpoints.getChunk(`${CHUNK_STEP.extract}-empty`, comment.commentId);
+        if (Array.isArray(cached) && (cached.length > 0 || emptyConfirmed === true)) {
           perComment[index] = cached as RawOpinion[];
         } else {
           throwIfCacheOnly(ctx, `意見抽出 (コメント ${comment.commentId})`);
           perComment[index] = await extractEnrichOne(comment.body, systemPrompt, ctx);
           await ctx.checkpoints.putChunk(CHUNK_STEP.extract, comment.commentId, perComment[index]);
+          if (perComment[index].length === 0)
+            await ctx.checkpoints.putChunk(`${CHUNK_STEP.extract}-empty`, comment.commentId, true);
         }
         done++;
         onProgress?.(done, total);
@@ -58,22 +61,15 @@ export async function extractAndEnrich(
     ),
   );
 
-  // 重複排除しつつ arg_id を割り当てる(本家 argument_map と同じ)。enrichment は初出を採用。
   const argumentMap = new Map<string, { arg: ExtractedArgument; enrichment: OpinionEnrichment }>();
   const relations: Relation[] = [];
   for (let i = 0; i < comments.length; i++) {
     const commentId = comments[i].commentId;
-    const ops = perComment[i] ?? [];
-    for (let j = 0; j < ops.length; j++) {
-      const text = ops[j].argument;
-      let argId: string;
-      const existing = argumentMap.get(text);
-      if (existing === undefined) {
-        argId = `A${commentId}_${j}`;
-        argumentMap.set(text, { arg: { argId, argument: text }, enrichment: ops[j].enrichment });
-      } else {
-        argId = existing.arg.argId;
-      }
+    for (const [j, op] of (perComment[i] ?? []).entries()) {
+      const key = JSON.stringify([commentId, op.argument]);
+      if (argumentMap.has(key)) continue;
+      const argId = `A${commentId}_${j}`;
+      argumentMap.set(key, { arg: { argId, argument: op.argument }, enrichment: op.enrichment });
       relations.push({ argId, commentId });
     }
   }
@@ -90,23 +86,16 @@ export async function extractAndEnrich(
 }
 
 async function extractEnrichOne(body: string, systemPrompt: string, ctx: PipelineContext): Promise<RawOpinion[]> {
-  try {
-    const response = await requestChat(ctx.chat, {
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: body },
-      ],
-      jsonSchema: EXTRACT_ENRICH_SCHEMA,
-      signal: ctx.signal,
-      onUsage: ctx.onUsage,
-    });
-    return parseExtractEnrich(response);
-  } catch (e) {
-    if (e instanceof DOMException && e.name === "AbortError") throw e;
-    // 本家と同じ思想: 失敗したコメントは空リスト扱いで続行
-    console.error("extract+enrich failed for a comment:", e);
-    return [];
-  }
+  const response = await requestChat(ctx.chat, {
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: body },
+    ],
+    jsonSchema: EXTRACT_ENRICH_SCHEMA,
+    signal: ctx.signal,
+    onUsage: ctx.onUsage,
+  });
+  return parseExtractEnrich(response);
 }
 
 /**
@@ -117,13 +106,13 @@ async function extractEnrichOne(body: string, systemPrompt: string, ctx: Pipelin
  */
 export function parseExtractEnrich(response: string): RawOpinion[] {
   const obj = parseJsonObjectLoose(response);
-  if (!obj) return [];
+  if (!obj) throw new Error("賛否スペクトラムの抽出応答がJSONではありません");
   const list = Array.isArray(obj.opinions)
     ? obj.opinions
     : Array.isArray(obj.extractedOpinionList)
       ? obj.extractedOpinionList
       : null;
-  if (!list) return [];
+  if (!list) throw new Error("賛否スペクトラムの抽出応答に opinions がありません");
   const out: RawOpinion[] = [];
   for (const item of list) {
     if (typeof item === "string") {
@@ -131,9 +120,10 @@ export function parseExtractEnrich(response: string): RawOpinion[] {
       if (text) out.push({ argument: text, enrichment: fallbackEnrichment() });
     } else if (item && typeof item === "object") {
       const record = item as Record<string, unknown>;
-      const text = String(record.argument ?? "").trim();
+      if (typeof record.argument !== "string") throw new Error("抽出した意見の本文が文字列ではありません");
+      const text = record.argument.trim();
       if (text) out.push({ argument: text, enrichment: normalizeEnrichment(record) });
-    }
+    } else throw new Error("抽出した意見の形式が不正です");
   }
   return out;
 }

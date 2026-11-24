@@ -76,6 +76,7 @@ function PonchieSection({ ponchie }: { ponchie: PonchieExport }) {
 
 function StandaloneApp() {
   const result = readJsonTag<Result>("report-data");
+  const meta = readJsonTag<{ title?: string }>("report-meta");
   const ponchie = readJsonTag<PonchieExport>("ponchie-data");
   if (!result) {
     return (
@@ -87,7 +88,7 @@ function StandaloneApp() {
   }
   return (
     <div className="container">
-      <ReportViewer result={result} />
+      <ReportViewer result={result} title={meta?.title} />
       {ponchie?.dataUrl && <PonchieSection ponchie={ponchie} />}
       <footer className="app-footer">
         <a href="https://github.com/tokoroten/kouchou-ai-serverless" target="_blank" rel="noreferrer">

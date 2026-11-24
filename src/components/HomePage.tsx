@@ -1,6 +1,7 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { useRef } from "react";
 import { exportResultJson, parsePreprocessed, parseResultJson } from "../lib/export";
+import { embeddingCacheKey, extractionCacheKey } from "../lib/pipeline/cacheKeys";
 import { canRecluster, ensureInteractiveProject } from "../lib/reportProject";
 import { navigate } from "../lib/router";
 import { importSampleReport } from "../lib/sampleReport";
@@ -69,14 +70,15 @@ export function HomePage() {
           clusterNums: meta.clusterNums,
           prompts: meta.prompts,
           samplingNum: meta.samplingNum,
+          enableOriginalComments: meta.enableOriginalComments === true,
           status: "paused",
           currentStep: "clustering",
           tokenUsage: { input: 0, output: 0, total: 0 },
         };
         await db.projects.put(project);
         const store = dexieStepStore(project.id);
-        await store.put("extraction", extraction);
-        await store.put("embedding", embedding);
+        await store.put("extraction", extraction, extractionCacheKey(project));
+        await store.put("embedding", embedding, embeddingCacheKey(extraction.args, project.settingsSnapshot.embedding));
         navigate(`/run/${project.id}`);
         return;
       }

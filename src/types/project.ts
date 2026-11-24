@@ -64,6 +64,7 @@ export type Project = {
     mergeLabelling: string;
     overview: string;
   };
+  enableOriginalComments?: boolean; // 明示trueのときだけ結果に元コメント本文を含める
   samplingNum: number; // ラベリング時のサンプリング数
   status: ProjectStatus;
   currentStep: PipelineStepName | null;

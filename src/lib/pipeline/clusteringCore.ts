@@ -134,7 +134,8 @@ export function mergeClustersWithHierarchy(
   kmeansLabels: Int32Array,
   nClusterCut: number,
 ): Int32Array {
-  const tree = agnes(centroids, { method: "ward" });
+  // scipy の ward は ward.D2。ml-hclust の ward (ward.D) とは距離の更新式が異なる。
+  const tree = agnes(centroids, { method: "ward2" });
   const grouped = tree.group(nClusterCut);
   // centroid index -> merged cluster label (1..n)
   const centroidToMerged = new Int32Array(centroids.length);

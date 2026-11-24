@@ -2,6 +2,7 @@
 // 出力レポートはこの Result とスキーマ互換を維持する(docs/DESIGN.md §5.2)。
 
 export type Result = {
+  schema_version?: 1;
   arguments: Argument[];
   clusters: Cluster[];
   comments: Comments;
@@ -40,13 +41,14 @@ export type Comments = Record<string, { comment: string }>;
 
 // 本家 Config 型に概ね準拠(埋められない項目は空文字でよい: DESIGN §5.2)
 export type ResultConfig = {
-  name: string;
+  name?: string;
   question: string;
-  input: string;
+  input?: string;
   model: string;
   intro: string;
-  output_dir: string;
+  output_dir?: string;
   is_embedded_at_local: boolean;
+  enable_original_comments?: boolean;
   extraction: {
     workers: number;
     limit: number;
@@ -83,9 +85,9 @@ export type ResultConfig = {
     model: string;
   };
   hierarchical_aggregation: {
-    hidden_properties: Record<string, string[]>;
+    hidden_properties?: Record<string, string[]>;
     source_code: string;
   };
   plan: { step: string; run: boolean | string; reason: string }[];
-  status: string;
+  status?: string;
 };

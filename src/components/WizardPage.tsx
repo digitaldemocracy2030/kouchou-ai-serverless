@@ -56,6 +56,7 @@ export function WizardPage() {
   const [title, setTitle] = useState("");
   const [question, setQuestion] = useState("");
   const [intro, setIntro] = useState("");
+  const [enableOriginalComments, setEnableOriginalComments] = useState(false);
 
   // Step3
   const [clusterNumsText, setClusterNumsText] = useState("");
@@ -162,6 +163,7 @@ export function WizardPage() {
       createdAt: Date.now(),
       comments,
       attributeColumns,
+      enableOriginalComments,
       settingsSnapshot: {
         chat: chatEndpoint,
         embedding: embeddingEndpoint,
@@ -326,6 +328,18 @@ export function WizardPage() {
       {step === 3 && (
         <div className="card">
           <h2>Step 3: 分析設定</h2>
+          <label>
+            <input
+              type="checkbox"
+              checked={enableOriginalComments}
+              onChange={(e) => setEnableOriginalComments(e.target.checked)}
+            />
+            元コメント本文をレポートに含める
+          </label>
+          <p className="note">
+            有効にすると元コメント本文が JSON・単一 HTML
+            にも入ります。引用・再配布が許可されたデータだけで有効にしてください。抽出した意見と選択した属性は、この設定に関係なく結果に含まれます。
+          </p>
           <p className="note">
             使用モデル: チャット = {resolveEndpoint(settings, "chat").model || "未設定"} / 埋め込み ={" "}
             {resolveEndpoint(settings, "embedding").model || "未設定"}(変更は「設定」から)
@@ -380,6 +394,7 @@ export function WizardPage() {
       {step === 4 && (
         <div className="card">
           <h2>Step 4: 確認とコスト見積り</h2>
+          <p>元コメント本文の同梱: {enableOriginalComments ? "有効" : "無効"}</p>
           <p>
             分析対象: <b>{bodyColumn}</b> 列(最初のコメント:「{comments[0]?.body.slice(0, 60)}
             {(comments[0]?.body.length ?? 0) > 60 ? "…" : ""}」)

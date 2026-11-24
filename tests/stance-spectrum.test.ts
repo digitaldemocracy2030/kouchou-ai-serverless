@@ -92,8 +92,8 @@ describe("parseExtractEnrich(結合抽出の投入口)", () => {
     expect(dominantStance(out[0].enrichment.stance)).toBe("unknown");
   });
 
-  it("壊れた JSON は空配列", () => {
-    expect(parseExtractEnrich("これは JSON ではない")).toEqual([]);
+  it("壊れた JSON は失敗として扱う", () => {
+    expect(() => parseExtractEnrich("これは JSON ではない")).toThrow();
   });
 });
 

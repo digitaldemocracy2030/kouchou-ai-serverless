@@ -23,9 +23,10 @@ type ChartTab = "scatter" | "density" | "treemap" | "hierarchy";
 
 type Props = {
   result: Result;
+  title?: string;
 };
 
-export function ReportViewer({ result }: Props) {
+export function ReportViewer({ result, title }: Props) {
   const [tab, setTab] = useState<ChartTab>("scatter");
   useEffect(() => {
     if (window.matchMedia("(max-width: 600px)").matches) setTab("hierarchy");
@@ -73,7 +74,7 @@ export function ReportViewer({ result }: Props) {
   return (
     <div className="viewer">
       <header className="viewer-header">
-        <h1>{result.config?.name || "レポート"}</h1>
+        <h1>{title || result.config?.name || "レポート"}</h1>
         {result.config?.question && <p className="viewer-question">{result.config.question}</p>}
       </header>
 

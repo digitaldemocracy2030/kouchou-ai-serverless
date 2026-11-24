@@ -1,6 +1,7 @@
 import type { EmbeddingResult, ExtractedArgument } from "../../../types/project";
 import { requestEmbeddings } from "../../llm/client";
 import { isLocalEmbedding } from "../../llm/localEmbedding";
+import { fnv1a } from "../clusterTable";
 import type { PipelineContext } from "../context";
 import { throwIfAborted, throwIfCacheOnly } from "../context";
 
@@ -23,7 +24,14 @@ export async function embedding(args: ExtractedArgument[], ctx: PipelineContext)
 
   for (let batchIndex = 0; batchIndex < total; batchIndex++) {
     throwIfAborted(ctx.signal);
-    const key = `${local ? "local:" : ""}${ctx.embedding.model}/${BATCH}/${batchIndex}`;
+    const inputKey = fnv1a(
+      JSON.stringify([
+        ctx.embedding.baseUrl,
+        argIds.slice(batchIndex * BATCH, (batchIndex + 1) * BATCH),
+        texts.slice(batchIndex * BATCH, (batchIndex + 1) * BATCH),
+      ]),
+    );
+    const key = `${local ? "local:" : ""}${ctx.embedding.model}/${BATCH}/${batchIndex}/${inputKey}`;
     let flat: Float32Array | undefined = await ctx.checkpoints.getChunk("embedding", key);
     if (flat === undefined) {
       throwIfCacheOnly(ctx, `埋め込み (バッチ ${batchIndex + 1}/${total})`);
