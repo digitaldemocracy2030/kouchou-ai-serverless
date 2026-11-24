@@ -13,6 +13,8 @@ import { overview } from "../../src/lib/pipeline/steps/overview";
 import { buildPublicResult } from "../../src/lib/publicResult";
 import { extractionPrompt, initialLabellingPrompt, mergeLabellingPrompt, overviewPrompt } from "../../src/prompts";
 
+import { runOpinionSources } from "./opinionSourcesAdapter";
+
 type Case = {
   comments: { id: string; body: string; region: string; opinions: string[]; paths: number[][] }[];
   publishComments: boolean;
@@ -130,6 +132,8 @@ function checkPrompts(upstream: string) {
 
 if (process.argv[2] === "prompts") {
   checkPrompts(process.argv[3]);
+} else if (process.argv[2] === "opinion-sources") {
+  process.stdout.write(JSON.stringify(runOpinionSources(JSON.parse(readFileSync(0, "utf8")))));
 } else if (process.argv[2] === "clustering") {
   const { points, cuts } = JSON.parse(readFileSync(0, "utf8"));
   const { assignments } = clusterXY(points, cuts, "contract");

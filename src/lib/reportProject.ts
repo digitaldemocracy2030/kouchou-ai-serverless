@@ -2,6 +2,7 @@ import { extractionPrompt, initialLabellingPrompt, mergeLabellingPrompt, overvie
 import type { ClusteringResult, CommentRow, ExtractionResult, Project, Relation } from "../types/project";
 import type { Result } from "../types/result";
 import { resolveEndpoint, type Settings } from "../types/settings";
+import { readCommentIds } from "./opinionSources";
 import { dexieStepStore } from "./storage/checkpoints";
 import { db, requestPersistentStorage } from "./storage/db";
 
@@ -34,7 +35,8 @@ export function projectFromResult(
   // コメントの属性は Result では意見側に載っているため、最初に見つかったものを採用する
   const attributesByComment = new Map<string, Record<string, string>>();
   for (const arg of result.arguments) {
-    const key = String(arg.comment_id);
+    const key = readCommentIds(arg)[0];
+    if (key === undefined) continue;
     if (attributesByComment.has(key) || !arg.attributes) continue;
     const attributes: Record<string, string> = {};
     for (const column of attributeColumns) {
@@ -49,10 +51,9 @@ export function projectFromResult(
     attributes: attributesByComment.get(commentId) ?? {},
   }));
 
-  const relations: Relation[] = result.arguments.map((a) => ({
-    argId: a.arg_id,
-    commentId: String(a.comment_id),
-  }));
+  const relations: Relation[] = result.arguments.flatMap((a) =>
+    readCommentIds(a).map((commentId) => ({ argId: a.arg_id, commentId })),
+  );
   const extraction: ExtractionResult = {
     args: result.arguments.map((a) => ({ argId: a.arg_id, argument: a.argument })),
     relations,

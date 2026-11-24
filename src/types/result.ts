@@ -20,6 +20,7 @@ export type Argument = {
   arg_id: string;
   argument: string;
   comment_id: number | string;
+  comment_ids?: string[];
   x: number;
   y: number;
   p: number;

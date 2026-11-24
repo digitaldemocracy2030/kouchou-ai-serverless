@@ -70,6 +70,7 @@ describe("前処理データの直列化", () => {
       relations: [
         { argId: "A0_0", commentId: "0" },
         { argId: "A1_0", commentId: "1" },
+        { argId: "A0_0", commentId: "1" },
       ],
     };
     const embedding = {
@@ -83,6 +84,11 @@ describe("前処理データの直列化", () => {
     expect(parsed.extraction).toEqual(extraction);
     expect(parsed.embedding.dim).toBe(3);
     expect(Array.from(parsed.embedding.vectors)).toEqual([1.5, -2.25, 0, 0.125, 4, -8]);
+
+    // v2 の横断重複排除を解除する互換処理は旧ファイルだけに適用する。
+    const legacy = parsePreprocessed(JSON.stringify({ ...JSON.parse(text), formatVersion: 2 }));
+    expect(legacy.extraction.args).toHaveLength(3);
+    expect(legacy.extraction.relations.map(({ commentId }) => commentId)).toEqual(["0", "1", "1"]);
   });
 
   it("不正なファイルは拒否する", () => {

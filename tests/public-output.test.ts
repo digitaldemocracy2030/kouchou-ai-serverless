@@ -15,7 +15,7 @@ describe("公開用結果", () => {
     const output = buildPublicResult(result);
     expect(output.schema_version).toBe(1);
     expect(output.comments).toEqual(flag === true ? result.comments : {});
-    expect(output.arguments).toEqual(result.arguments);
+    expect(output.arguments).toEqual(result.arguments.map((arg) => ({ ...arg, comment_id: String(arg.comment_id) })));
     expect(output.comment_num).toBe(result.comment_num);
     expect(JSON.stringify(result)).toBe(before);
   });
