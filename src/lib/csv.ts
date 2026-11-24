@@ -61,7 +61,7 @@ export function detectBodyColumn(columns: string[], rows: Record<string, string>
 
 /**
  * パース済み CSV 行を CommentRow に正規化する。
- * - comment-body が空・空白のみの行は除外する(本家 #583 と同じ)
+ * - comment-body が空・空白のみの行は除外する(本家 #583 と同じ)。他の行は原文を保持する
  * - comment-id 列がなければ行番号を振る
  */
 export function normalizeComments(
@@ -74,8 +74,8 @@ export function normalizeComments(
   const seenIds = new Set<string>();
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
-    const body = (row[bodyColumn] ?? "").trim();
-    if (body === "") continue;
+    const body = row[bodyColumn] ?? "";
+    if (!body.trim()) continue;
     let commentId = idColumn ? String(row[idColumn] ?? "").trim() : String(i);
     if (commentId === "" || seenIds.has(commentId)) commentId = `${commentId || "row"}_${i}`;
     seenIds.add(commentId);
