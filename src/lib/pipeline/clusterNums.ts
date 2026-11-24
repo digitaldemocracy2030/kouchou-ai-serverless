@@ -9,3 +9,14 @@ export function calculateRecommendedClusterNums(argumentCount: number): number[]
   const lv2 = Math.max(2, Math.min(1000, argumentCount, lv1 * lv1));
   return [...new Set([lv1, lv2])].sort((a, b) => a - b);
 }
+
+/** 空欄は自動、未対応の指定を含む場合は入力エラー。 */
+export function parseRequestedClusterNums(text: string): number[] | null {
+  if (!text.trim()) return [];
+  const numbers = text
+    .split(/[,、\s]+/)
+    .filter(Boolean)
+    .map(Number);
+  if (!numbers.length || numbers.some((number) => !Number.isSafeInteger(number) || number < 2)) return null;
+  return [...new Set(numbers)].sort((a, b) => a - b);
+}
