@@ -102,6 +102,7 @@ export function projectFromResult(
     intro: config?.intro ?? "",
     createdAt: Date.now(),
     comments,
+    inputCommentCount: result.comment_num,
     attributeColumns,
     settingsSnapshot: {
       chat: resolveEndpoint(settings, "chat"),

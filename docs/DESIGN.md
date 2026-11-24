@@ -179,6 +179,8 @@ Structured Outputs を使う(`../kouchou-ai/packages/analysis-core/src/analysis_
 - `overview`: 全体要約文字列
 - `config`: 使用モデル・プロンプト等(本家の `Config` 型に概ね準拠。埋められない項目は空文字でよい)
 - `comment_num`, `propertyMap`(属性列があれば), `translations`(`{}` でよい)
+- 新規CSV取込の `comment_num` は受理した回答行数。空白だけの本文を除外した分析対象件数と区別する。
+  前処理ファイルにも入力件数を残す。入力件数を記録していない過去のCSVプロジェクトは従来の有効回答数を使う。
 
 クラスタ ID の命名は本家に合わせる: レベル L のクラスタは `"{L}_{index}"`、ルートは `"0"`。
 

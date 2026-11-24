@@ -92,6 +92,7 @@ export type AggregationInput = {
     | "title"
     | "question"
     | "intro"
+    | "inputCommentCount"
     | "attributeColumns"
     | "clusterNums"
     | "prompts"
@@ -111,6 +112,11 @@ export type AggregationInput = {
 
 export function aggregation(input: AggregationInput): Result {
   const { project, comments, extractionResult, table, labels, overviewText } = input;
+  const savedCount = project.inputCommentCount;
+  const inputCommentCount =
+    typeof savedCount === "number" && Number.isSafeInteger(savedCount) && savedCount >= comments.length
+      ? savedCount
+      : comments.length;
 
   // arg-id -> comment-id(最初の出現を採用)
   const commentIdByArgId = new Map<string, string>();
@@ -204,7 +210,8 @@ export function aggregation(input: AggregationInput): Result {
     question: project.question,
     input: project.title,
     model: input.chatModel,
-    intro: customIntro,
+    intro:
+      inputCommentCount > comments.length ? `${customIntro}入力コメントは${inputCommentCount}件です。\n` : customIntro,
     output_dir: "",
     is_embedded_at_local: input.embeddedAtLocal ?? false,
     enable_original_comments: project.enableOriginalComments === true,
@@ -259,6 +266,6 @@ export function aggregation(input: AggregationInput): Result {
     translations: {},
     overview: overviewText,
     config,
-    comment_num: comments.length,
+    comment_num: inputCommentCount,
   };
 }

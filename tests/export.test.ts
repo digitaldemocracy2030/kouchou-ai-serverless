@@ -48,6 +48,7 @@ describe("前処理データの直列化", () => {
       question: "Q",
       intro: "I",
       comments: [{ commentId: "0", body: "コメント", attributes: { age: "20代" } }],
+      inputCommentCount: 2,
       attributeColumns: ["age"],
       clusterNums: [2, 4],
       samplingNum: 30,
