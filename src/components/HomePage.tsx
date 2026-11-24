@@ -61,6 +61,7 @@ export function HomePage() {
           intro: meta.intro,
           createdAt: Date.now(),
           comments: meta.comments,
+          inputCommentCount: meta.inputCommentCount,
           attributeColumns: meta.attributeColumns,
           settingsSnapshot: {
             chat: resolveEndpoint(settings, "chat"),

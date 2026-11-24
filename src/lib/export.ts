@@ -144,6 +144,7 @@ export async function exportSingleHtml(result: Result, ponchie: PonchieExport | 
 
 export type ProjectMeta = {
   enableOriginalComments?: boolean;
+  inputCommentCount?: number;
   title: string;
   question: string;
   intro: string;

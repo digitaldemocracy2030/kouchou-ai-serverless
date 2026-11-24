@@ -160,6 +160,7 @@ export function WizardPage() {
       intro,
       createdAt: Date.now(),
       comments,
+      inputCommentCount: preview?.totalRows,
       attributeColumns,
       enableOriginalComments,
       settingsSnapshot: {

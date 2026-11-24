@@ -51,6 +51,8 @@ export type Project = {
   intro: string;
   createdAt: number;
   comments: CommentRow[]; // 正規化済み入力データ
+  /** CSV取込で受理した行数。本文が空の行の除外前。 */
+  inputCommentCount?: number;
   attributeColumns: string[];
   settingsSnapshot: ResolvedSettings;
   clusterNums: number[]; // 空なら自動(cube-root)

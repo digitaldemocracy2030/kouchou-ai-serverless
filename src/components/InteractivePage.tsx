@@ -538,6 +538,7 @@ export function InteractivePage({ projectId }: { projectId: string }) {
                       question: project.question,
                       intro: project.intro,
                       comments: project.comments,
+                      inputCommentCount: project.inputCommentCount,
                       attributeColumns: project.attributeColumns,
                       clusterNums: project.clusterNums,
                       samplingNum: project.samplingNum,

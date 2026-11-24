@@ -92,6 +92,7 @@ describe("aggregation", () => {
         enableOriginalComments: true,
         question: "Q",
         intro: "I",
+        inputCommentCount: 4,
         attributeColumns: ["age"],
         clusterNums: [2, 4],
         prompts: { extraction: "e", initialLabelling: "i", mergeLabelling: "m", overview: "o" },
@@ -144,7 +145,9 @@ describe("aggregation", () => {
     }
     // comments / propertyMap / attributes
     expect(result.comments["0"]).toEqual({ comment: "コメント0" });
-    expect(result.comment_num).toBe(3);
+    expect(result.comment_num).toBe(4);
+    expect(result.config.intro).toContain("分析対象となったデータの件数は3件");
+    expect(result.config.intro).toContain("入力コメントは4件");
     expect(result.propertyMap.age.A0_0).toBe("20代");
     expect(result.arguments[0].attributes).toEqual({ age: "20代" });
     expect(result.arguments[3].attributes).toBeUndefined();
