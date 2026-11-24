@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { type CsvPreview, detectBodyColumn, normalizeComments, parseCsvFile } from "../lib/csv";
 import { estimateCost, estimateSlotCosts, type SlotCost } from "../lib/estimate";
-import { calculateRecommendedClusterNums } from "../lib/pipeline/clusterNums";
+import { calculateRecommendedClusterNums, parseRequestedClusterNums } from "../lib/pipeline/clusterNums";
 import { navigate } from "../lib/router";
 import { db, requestPersistentStorage } from "../lib/storage/db";
 import { extractionPrompt, initialLabellingPrompt, mergeLabellingPrompt, overviewPrompt } from "../prompts";
@@ -76,13 +76,7 @@ export function WizardPage() {
     return normalizeComments(preview.rows, bodyColumn, idColumn || null, attributeColumns);
   }, [preview, bodyColumn, idColumn, attributeColumns]);
 
-  const clusterNums = useMemo(() => {
-    const parsed = clusterNumsText
-      .split(/[,、\s]+/)
-      .map((s) => Number(s))
-      .filter((n) => Number.isInteger(n) && n >= 2);
-    return parsed.sort((a, b) => a - b);
-  }, [clusterNumsText]);
+  const clusterNums = useMemo(() => parseRequestedClusterNums(clusterNumsText), [clusterNumsText]);
 
   const recommendedNums = useMemo(() => {
     const estimatedArgs = Math.max(2, Math.round(comments.length * 1.3));
@@ -103,7 +97,7 @@ export function WizardPage() {
           mergeLabelling: prompts.mergeLabelling.length,
           overview: prompts.overview.length,
         },
-        clusterNums,
+        clusterNums ?? [],
         samplingNum,
       ),
     [comments, prompts, clusterNums, samplingNum],
@@ -137,6 +131,10 @@ export function WizardPage() {
 
   const create = async () => {
     setError(null);
+    if (clusterNums === null) {
+      setStep(3);
+      return;
+    }
     if (comments.length < 2) {
       setError("有効なコメントが2件未満です。comment-body 列の指定を確認してください。");
       return;
@@ -344,12 +342,18 @@ export function WizardPage() {
             使用モデル: チャット = {resolveEndpoint(settings, "chat").model || "未設定"} / 埋め込み ={" "}
             {resolveEndpoint(settings, "embedding").model || "未設定"}(変更は「設定」から)
           </p>
-          <label>クラスタ数(カンマ区切り。空欄なら自動: 推奨 {recommendedNums.join(", ")})</label>
+          <label htmlFor="cluster-nums">
+            クラスタ数(カンマ区切り。空欄なら自動: 推奨 {recommendedNums.join(", ")})
+          </label>
           <input
+            id="cluster-nums"
             value={clusterNumsText}
             onChange={(e) => setClusterNumsText(e.target.value)}
             placeholder={recommendedNums.join(", ")}
+            aria-invalid={clusterNums === null}
+            aria-describedby={clusterNums === null ? "cluster-nums-error" : undefined}
           />
+          {clusterNums === null && <p id="cluster-nums-error">クラスタ数は2以上の整数を入力してください。</p>}
           <label>ラベリング時のサンプリング数</label>
           <input
             type="number"
@@ -445,7 +449,7 @@ export function WizardPage() {
           <button
             type="button"
             className="primary"
-            disabled={step === 1 && comments.length < 2}
+            disabled={(step === 1 && comments.length < 2) || (step === 3 && clusterNums === null)}
             onClick={() => setStep(step + 1)}
           >
             次へ

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateRecommendedClusterNums } from "../src/lib/pipeline/clusterNums";
+import { calculateRecommendedClusterNums, parseRequestedClusterNums } from "../src/lib/pipeline/clusterNums";
 
 // 本家 calculate_recommended_cluster_nums と同じ挙動を検証する
 
@@ -28,5 +28,20 @@ describe("calculateRecommendedClusterNums", () => {
 
   it("2未満はエラー", () => {
     expect(() => calculateRecommendedClusterNums(1)).toThrow();
+  });
+});
+
+describe("parseRequestedClusterNums", () => {
+  it("空欄だけを自動指定として扱う", () => {
+    expect(parseRequestedClusterNums("  ")).toEqual([]);
+    expect(parseRequestedClusterNums("、,")).toBeNull();
+  });
+
+  it.each(["1", "1,4", "2,0", "2,3.5", "2,四"])("未対応の指定を読み飛ばさない: %s", (text) => {
+    expect(parseRequestedClusterNums(text)).toBeNull();
+  });
+
+  it("対応する指定はカンマ・読点・空白区切りで受理する", () => {
+    expect(parseRequestedClusterNums("9、4, 6 4")).toEqual([4, 6, 9]);
   });
 });
