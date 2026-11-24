@@ -24,6 +24,7 @@ export function ViewerPage({ reportId }: { reportId: string }) {
   const report = useLiveQuery(async () => (await db.reports.get(reportId)) ?? null, [reportId]);
   const project = useLiveQuery(() => db.projects.filter((p) => p.reportId === reportId).first(), [reportId]);
   const { settings } = useSettings();
+  const [includeOriginalComments, setIncludeOriginalComments] = useState<boolean | null>(null);
   const [exporting, setExporting] = useState(false);
   const [exportingPptx, setExportingPptx] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -120,6 +121,13 @@ export function ViewerPage({ reportId }: { reportId: string }) {
   // 生成元プロジェクトがあるか、レポート自体に座標が入っていれば再クラスタリングできる
   const reclusterable = !!project || canRecluster(report.result);
 
+  const exportResult = {
+    ...report.result,
+    config: {
+      ...report.result.config,
+      enable_original_comments: includeOriginalComments ?? report.result.config?.enable_original_comments === true,
+    },
+  };
   const exportHtml = async () => {
     setExporting(true);
     try {
@@ -131,7 +139,7 @@ export function ViewerPage({ reportId }: { reportId: string }) {
             createdAt: imageRow.createdAt,
           }
         : null;
-      await exportSingleHtml(report.result, ponchie);
+      await exportSingleHtml(exportResult, ponchie);
     } catch (e) {
       alert(`エクスポートに失敗しました: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
@@ -208,6 +216,16 @@ export function ViewerPage({ reportId }: { reportId: string }) {
 
   return (
     <div>
+      {Object.keys(report.result.comments ?? {}).length > 0 && (
+        <label className="checkbox-label">
+          <input
+            type="checkbox"
+            checked={exportResult.config.enable_original_comments}
+            onChange={(e) => setIncludeOriginalComments(e.target.checked)}
+          />
+          書き出す JSON・単一 HTML に元コメント本文を含める（再配布できる場合のみ）
+        </label>
+      )}
       <div className="row" style={{ justifyContent: "flex-end" }}>
         {report.tokenUsage && (
           <span className="note">
@@ -216,7 +234,7 @@ export function ViewerPage({ reportId }: { reportId: string }) {
             {cost !== null ? ` ≈ $${cost.toFixed(3)}` : ""}({report.chatModel})
           </span>
         )}
-        <button type="button" onClick={() => exportResultJson(report.result)}>
+        <button type="button" onClick={() => exportResultJson(exportResult)}>
           JSON エクスポート
         </button>
         <button type="button" onClick={exportHtml} disabled={exporting}>
@@ -248,7 +266,7 @@ export function ViewerPage({ reportId }: { reportId: string }) {
       </div>
       {exportError && <div className="error-box">{exportError}</div>}
 
-      <ReportViewer result={report.result} />
+      <ReportViewer result={report.result} title={report.title} />
 
       {/* ポンチ絵セクション: レポートの争点を一枚絵にする。PowerPoint の先頭スライドにも入る。
           チャートと解説を先に見せたいので、ビューア(散布図)の下に置く */}

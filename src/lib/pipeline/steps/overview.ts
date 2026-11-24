@@ -31,9 +31,9 @@ export async function overview(labels: LabellingResult, prompt: string, ctx: Pip
   });
 
   // 入力内容をキーにキャッシュ(再クラスタリング後、level1 が同一構成なら再利用)
-  const cacheKey = fnv1a(inputText);
+  const cacheKey = `validated/${fnv1a(inputText)}`;
   const cached = await ctx.checkpoints.getChunk("overview", cacheKey);
-  if (typeof cached === "string") return cached;
+  if (typeof cached === "string" && cached.trim()) return cached;
 
   ctx.onProgress?.({ step: "overview", done: 0, total: 1 });
   const response = await requestChat(ctx.chat, {

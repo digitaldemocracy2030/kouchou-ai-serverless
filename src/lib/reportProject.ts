@@ -115,6 +115,7 @@ export function projectFromResult(
       mergeLabelling: promptOr(config?.hierarchical_merge_labelling?.prompt, mergeLabellingPrompt),
       overview: promptOr(config?.hierarchical_overview?.prompt, overviewPrompt),
     },
+    enableOriginalComments: config?.enable_original_comments === true,
     samplingNum: 30,
     status: "done",
     currentStep: "aggregation",

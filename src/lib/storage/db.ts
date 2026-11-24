@@ -20,6 +20,8 @@ export type StepResultRow = {
   // biome-ignore lint/suspicious/noExplicitAny: ステップごとに型が異なる
   data: any;
   completedAt: number;
+  /** 工程の入力と実装世代。旧形式の完了済み工程は明示的な再開時に作り直す。 */
+  cacheKey?: string;
 };
 
 export type ExtractionCacheRow = {

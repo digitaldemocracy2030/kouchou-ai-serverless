@@ -77,3 +77,12 @@ export function memoryCheckpoints(): Checkpoints {
 export function throwIfAborted(signal?: AbortSignal): void {
   if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
 }
+
+/** 失敗後の再試行と、まだ実行中のチェックポイント書込を競合させない。 */
+export async function settleAll<T>(tasks: Promise<T>[]): Promise<T[]> {
+  const outcomes = await Promise.allSettled(tasks);
+  return outcomes.map((outcome) => {
+    if (outcome.status === "rejected") throw outcome.reason;
+    return outcome.value;
+  });
+}

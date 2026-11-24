@@ -39,18 +39,18 @@ describe("extraction", () => {
     { commentId: "20", body: "コメント2", attributes: {} },
   ];
 
-  it("arg_id は A{commentId}_{j} 形式で、重複意見は最初の arg_id に集約される", async () => {
+  it("arg_id は A{commentId}_{j} 形式で、別回答の同文意見も保持する", async () => {
     vi.stubGlobal(
       "fetch",
       mockChatFetch((content) => (content === "コメント1" ? ["意見X", "意見Y"] : ["意見X", "意見Z"])),
     );
     const result = await extraction(comments, "prompt", makeCtx());
-    // 「意見X」は最初の A10_0 に集約され、args は3件
-    expect(result.args.map((a) => a.argId).sort()).toEqual(["A10_0", "A10_1", "A20_1"]);
+    // 別回答の「意見X」は2件として保持する
+    expect(result.args.map((a) => a.argId).sort()).toEqual(["A10_0", "A10_1", "A20_0", "A20_1"]);
     expect(result.args.find((a) => a.argId === "A10_0")?.argument).toBe("意見X");
     // relations は4件(重複含む)
     expect(result.relations).toHaveLength(4);
-    expect(result.relations.filter((r) => r.argId === "A10_0").map((r) => r.commentId)).toEqual(["10", "20"]);
+    expect(result.relations.filter((r) => r.argId === "A10_0").map((r) => r.commentId)).toEqual(["10"]);
   });
 
   it("チェックポイント済みコメントは再呼び出ししない", async () => {

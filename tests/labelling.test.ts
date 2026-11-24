@@ -64,14 +64,13 @@ describe("initialLabelling", () => {
     }
   });
 
-  it("API 失敗時はプレースホルダ(本家と同じ)", async () => {
+  it("API 失敗は成功結果として返さない", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => new Response("error", { status: 401 })),
     );
     const { table } = fixtures();
-    const labels = await initialLabelling(table, "prompt", 30, makeCtx());
-    expect(labels.every((l) => l.label === LABEL_ERROR_PLACEHOLDER)).toBe(true);
+    await expect(initialLabelling(table, "prompt", 30, makeCtx())).rejects.toThrow();
   });
 });
 

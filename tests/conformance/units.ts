@@ -5,7 +5,7 @@ import { buildClusterTable } from "../../src/lib/pipeline/clusterTable";
 import { memoryCheckpoints, type PipelineContext } from "../../src/lib/pipeline/context";
 import { clustering, umapCheckpointKey } from "../../src/lib/pipeline/steps/clustering";
 import { extraction } from "../../src/lib/pipeline/steps/extraction";
-import { initialLabelling, LABEL_ERROR_PLACEHOLDER } from "../../src/lib/pipeline/steps/labelling";
+import { initialLabelling } from "../../src/lib/pipeline/steps/labelling";
 import { overview } from "../../src/lib/pipeline/steps/overview";
 import { extractionPrompt, initialLabellingPrompt, mergeLabellingPrompt, overviewPrompt } from "../../src/prompts";
 import { fakeFetch, type Stage } from "./fakeLlm";
@@ -131,11 +131,11 @@ export function registerUnitTests(): void {
           clusterNums: [1],
           assignments: [Int32Array.from([0])],
         });
-        const [label] = await initialLabelling(table, PROMPTS.initial_labelling, 30, makeCtx());
-        // serverless は失敗をプレースホルダに置き換えて続行する。本家は失敗として扱う
-        const failed = label.label === LABEL_ERROR_PLACEHOLDER;
-        expect(failed).toBe(item.error !== undefined);
-        if (item.ok !== undefined) expect({ label: label.label, description: label.description }).toEqual(item.ok);
+        const outcome = await initialLabelling(table, PROMPTS.initial_labelling, 30, makeCtx())
+          .then(([label]) => ({ ok: { label: label.label, description: label.description } }))
+          .catch(() => ({ error: "Error" }));
+        expect("error" in outcome).toBe(item.error !== undefined);
+        if (item.ok !== undefined) expect(outcome).toEqual({ ok: item.ok });
       });
     });
 

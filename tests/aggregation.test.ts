@@ -89,6 +89,7 @@ describe("aggregation", () => {
     const result = aggregation({
       project: {
         title: "テスト",
+        enableOriginalComments: true,
         question: "Q",
         intro: "I",
         attributeColumns: ["age"],
@@ -128,8 +129,8 @@ describe("aggregation", () => {
     expect(result.arguments[2].cluster_ids).toEqual(["0", "1_2", "2_2"]);
     // arg_id 形式
     expect(result.arguments[0].arg_id).toBe("A0_0");
-    // comment_id は数値化される(本家サンプル互換)
-    expect(result.arguments[0].comment_id).toBe(0);
+    // comment_id は先頭ゼロ・大きいIDも含め常に文字列
+    expect(result.arguments[0].comment_id).toBe("0");
     // ルートクラスタ
     const root = result.clusters[0];
     expect(root).toMatchObject({ level: 0, id: "0", label: "全体", parent: "", value: 4 });
@@ -168,6 +169,7 @@ describe("コメント参照の持ち出し", () => {
     const result = aggregation({
       project: {
         title: "参照保持",
+        enableOriginalComments: true,
         question: "Q",
         intro: "I",
         attributeColumns: ["age"],

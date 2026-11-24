@@ -83,7 +83,7 @@ function clusteringCheckpointKey(nums: number[], input: Pick<ClusteringInput, "s
   const seed = input.seed ?? "kouchou-ai";
   const seedPart = seed === "kouchou-ai" ? "" : `/${seed}`;
   const umapPart = input.umap && Object.keys(input.umap).length > 0 ? `/${JSON.stringify(input.umap)}` : "";
-  return `${JSON.stringify(nums)}${seedPart}${umapPart}`;
+  return `ward2/${JSON.stringify(nums)}${seedPart}${umapPart}`;
 }
 
 type CoreOutput = {

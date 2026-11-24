@@ -1,5 +1,7 @@
 import type { CommentRow, EmbeddingResult, ExtractionResult } from "../types/project";
 import type { Result } from "../types/result";
+import { restoreAnswerReferences } from "./pipeline/restoreReferences";
+import { buildPublicResult } from "./publicResult";
 
 // レポートのエクスポート(DESIGN §7.1)。
 // 1. Result JSON(本家互換) 2. 単一HTMLレポート 3. CSV
@@ -15,8 +17,8 @@ export function downloadBlob(blob: Blob, filename: string): void {
 }
 
 export function exportResultJson(result: Result): void {
-  const blob = new Blob([JSON.stringify(result, null, 2)], { type: "application/json" });
-  downloadBlob(blob, "hierarchical_result.json");
+  const blob = new Blob([JSON.stringify(buildPublicResult(result), null, 2)], { type: "application/json" });
+  downloadBlob(blob, "public_result.json");
 }
 
 /** Result JSON のインポート(本家産含む)。最低限のスキーマ検証を行う。 */
@@ -128,7 +130,8 @@ export async function exportSingleHtml(result: Result, ponchie: PonchieExport | 
   const response = await fetch(`${import.meta.env.BASE_URL}report-template.html`);
   if (!response.ok) throw new Error("レポートテンプレートの取得に失敗しました");
   const template = await response.text();
-  let html = injectJsonTag(template, "report-data", result);
+  let html = injectJsonTag(template, "report-data", buildPublicResult(result));
+  html = injectJsonTag(html, "report-meta", { title: result.config?.name ?? "レポート" }, { required: false });
   if (ponchie) html = injectJsonTag(html, "ponchie-data", ponchie, { required: false });
   const title = result.config?.name ?? "report";
   downloadBlob(new Blob([html], { type: "text/html" }), `${title}.html`);
@@ -139,6 +142,7 @@ export async function exportSingleHtml(result: Result, ponchie: PonchieExport | 
 // ポストプロセス(クラスタリング以降)だけをやり直せるようにする。
 
 export type ProjectMeta = {
+  enableOriginalComments?: boolean;
   title: string;
   question: string;
   intro: string;
@@ -202,8 +206,7 @@ export function parsePreprocessed(text: string): {
   const vectors = new Float32Array(bytes.buffer, 0, bytes.byteLength / 4);
   return {
     project: data.project,
-    extraction: data.extraction,
-    embedding: { argIds: data.embedding.argIds, dim: data.embedding.dim, vectors },
+    ...restoreAnswerReferences(data.extraction, { argIds: data.embedding.argIds, dim: data.embedding.dim, vectors }),
   };
 }
 

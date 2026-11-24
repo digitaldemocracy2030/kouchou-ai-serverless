@@ -308,6 +308,7 @@ export function InteractivePage({ projectId }: { projectId: string }) {
         chatModel: ctx.chat.model,
         embeddingModel: ctx.embedding.model,
         workers: ctx.concurrency,
+        embeddedAtLocal: ctx.embedding.baseUrl === LOCAL_EMBEDDING_BASE_URL,
       });
       const reportId = crypto.randomUUID();
       await db.reports.put({
@@ -536,6 +537,7 @@ export function InteractivePage({ projectId }: { projectId: string }) {
                       attributeColumns: project.attributeColumns,
                       clusterNums: project.clusterNums,
                       samplingNum: project.samplingNum,
+                      enableOriginalComments: project.enableOriginalComments,
                       prompts: project.prompts,
                     },
                     preprocessed.ext,

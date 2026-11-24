@@ -86,16 +86,21 @@ export function parseLabelResponse(response: string): { label: string; descripti
   if (!obj) return null;
   const label = obj.label;
   const description = obj.description;
-  if (typeof label !== "string") return null;
+  if (typeof label !== "string" || !label.trim() || typeof description !== "string" || !description.trim()) return null;
   return {
     label,
-    description: typeof description === "string" ? description : "",
+    description,
   };
 }
 
-/** overview レスポンスのパース。失敗時は <think> 除去済みの生テキスト(本家と同じ)。 */
+/** 本家と同じく、通常の要約文は許すが空応答・壊れたJSONは公開しない。 */
 export function parseOverviewResponse(response: string): string {
   const obj = parseJsonObjectLoose(response);
-  if (obj && typeof obj.summary === "string") return obj.summary;
-  return response.replace(/<think\b[^>]*>[\s\S]*?<\/think>/g, "").trim();
+  if (obj) {
+    if (typeof obj.summary === "string" && obj.summary.trim()) return obj.summary;
+    throw new Error("概要の応答に有効な summary がありません");
+  }
+  const text = response.replace(/<think\b[^>]*>[\s\S]*?<\/think>/g, "").trim();
+  if (!text || /^(\{|\[|```)/.test(text)) throw new Error("概要の応答から summary を取り出せませんでした");
+  return text;
 }

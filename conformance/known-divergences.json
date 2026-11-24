@@ -1,32 +1,14 @@
 {
   "description": "本家（kouchou-ai analysis-core）と振る舞いが違うと分かっている点。tests/conformance の id ごとに理由を書く。直して一致したら、その id を消す（消さないとテストが落ちる）。確認時の本家の commit は conformance/expected/*.json の kouchou_ai_commit。",
   "divergences": {
-    "units.ward_merge.partition": {
-      "reason": "上位クラスタの分け方が違う。ml-hclust の method 'ward' は R の ward.D（距離を二乗せずに Lance-Williams 更新）で、scipy の ward は ward.D2。ml-hclust の 'ward2' にすると 7 件すべて一致する"
-    },
     "units.ward_merge.labels": {
       "reason": "分け方が同じでもクラスタ番号の振り方が scipy fcluster と違う（上位クラスタの ID と並び順が変わる）"
     },
     "units.normalize_cluster_nums": {
       "reason": "serverless はクラスタ数の下限を 2 にする。本家は 1 を許す"
     },
-    "case.basic.extraction.relations": {
-      "reason": "同じ回答の中で同じ文が繰り返されると、serverless は意見と回答の対応を重複して記録する。本家は 1 行だけ"
-    },
-    "case.duplicate-across-comments.extraction.args": {
-      "reason": "別々の回答から出た同じ文面の意見を、serverless は 1 件にまとめる（本家の旧仕様）。本家は回答ごとに別の意見にし、それぞれの回答者の属性を残す"
-    },
-    "case.duplicate-across-comments.extraction.relations": {
-      "reason": "上の args と同じ原因"
-    },
     "case.surrounding-whitespace.extraction.requests": {
       "reason": "serverless は回答本文の前後の空白を削ってから LLM に送る。本家はそのまま送る"
-    },
-    "case.basic.result.arguments.comment_id": {
-      "reason": "serverless は数字だけの回答 ID を数値で書く（\"12\" → 12）。本家は常に文字列"
-    },
-    "case.basic.result.comments": {
-      "reason": "serverless は元コメント本文を常に入れる。本家はレポートごとの opt-in で、既定では入れない（kouchou-ai #1155）"
     },
     "case.basic.result.comment_num": {
       "reason": "本家は空白だけの回答も数える（入力の行数）。serverless は除いた後の件数"
@@ -46,26 +28,8 @@
     "parse.extraction.7": {
       "reason": "末尾にカンマのある JSON を serverless は読む。本家は形式不正として扱う"
     },
-    "parse.label.1": {
-      "reason": "description が空でも serverless は失敗にせず説明をプレースホルダにする。本家はラベル付け全体を失敗にする"
-    },
-    "parse.label.3": {
-      "reason": "description が無くても serverless は失敗にしない。本家は失敗"
-    },
     "parse.label.4": {
       "reason": "<think> を含む応答を serverless は読む。本家は形式不正として失敗"
-    },
-    "parse.overview.3": {
-      "reason": "summary が空のとき、serverless は空の概要で続ける。本家は失敗にする"
-    },
-    "parse.overview.4": {
-      "reason": "summary の無い JSON を serverless はそのまま概要として公開する。本家は失敗にする"
-    },
-    "parse.overview.5": {
-      "reason": "途中で切れた JSON を serverless はそのまま概要として公開する。本家は失敗にする"
-    },
-    "parse.overview.6": {
-      "reason": "空の応答で serverless は空の概要のまま続ける。本家は失敗にする"
     }
   }
 }

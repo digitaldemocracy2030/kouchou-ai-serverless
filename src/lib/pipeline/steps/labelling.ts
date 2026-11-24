@@ -4,16 +4,28 @@ import { parseLabelResponse } from "../../llm/jsonParse";
 import type { ClusterTable } from "../clusterTable";
 import { compositionHash, rowsInCluster, sampleRows, uniqueClusterIds } from "../clusterTable";
 import type { PipelineContext } from "../context";
-import { throwIfAborted } from "../context";
+import { settleAll, throwIfAborted } from "../context";
 
 // 本家 hierarchical_initial_labelling.py / hierarchical_merge_labelling.py の移植。
 // - initial: 最深レベルの各クラスタから sampling_num 件サンプリングして chat 1回
 // - merge: 深いレベルから順に、子クラスタの label/description + サンプル意見から親を生成
-// - 失敗時は本家と同じプレースホルダ文字列
+// - 失敗はキャッシュせず工程を中断し、再開時は成功済みクラスタだけを再利用
 // - チェックポイント: クラスタ単位
 
 export const LABEL_ERROR_PLACEHOLDER = "エラーでラベル名が取得できませんでした";
 export const DESCRIPTION_ERROR_PLACEHOLDER = "エラーで解説が取得できませんでした";
+
+export function isValidClusterLabel(value: ClusterLabel): boolean {
+  return (
+    !!value &&
+    typeof value.label === "string" &&
+    !!value.label.trim() &&
+    typeof value.description === "string" &&
+    !!value.description.trim() &&
+    value.label !== LABEL_ERROR_PLACEHOLDER &&
+    value.description !== DESCRIPTION_ERROR_PLACEHOLDER
+  );
+}
 
 const LABEL_SCHEMA = {
   name: "LabellingFormat",
@@ -33,28 +45,18 @@ async function requestLabel(
   userContent: string,
   ctx: PipelineContext,
 ): Promise<{ label: string; description: string }> {
-  try {
-    const response = await requestChat(ctx.chat, {
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userContent },
-      ],
-      jsonSchema: LABEL_SCHEMA,
-      signal: ctx.signal,
-      onUsage: ctx.onUsage,
-    });
-    const parsed = parseLabelResponse(response);
-    if (parsed) {
-      return {
-        label: parsed.label || LABEL_ERROR_PLACEHOLDER,
-        description: parsed.description || DESCRIPTION_ERROR_PLACEHOLDER,
-      };
-    }
-  } catch (e) {
-    if (e instanceof DOMException && e.name === "AbortError") throw e;
-    console.error("labelling failed:", e);
-  }
-  return { label: LABEL_ERROR_PLACEHOLDER, description: DESCRIPTION_ERROR_PLACEHOLDER };
+  const response = await requestChat(ctx.chat, {
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userContent },
+    ],
+    jsonSchema: LABEL_SCHEMA,
+    signal: ctx.signal,
+    onUsage: ctx.onUsage,
+  });
+  const parsed = parseLabelResponse(response);
+  if (!parsed) throw new Error("ラベルの応答に有効な label / description がありません");
+  return parsed;
 }
 
 /** 最深レベルのラベル付け(本家 initial_labelling) */
@@ -71,14 +73,14 @@ export async function initialLabelling(
   let done = 0;
   ctx.onProgress?.({ step: "initial_labelling", done, total: clusterIds.length });
 
-  const results = await Promise.all(
+  const results = await settleAll(
     clusterIds.map((clusterId) =>
       semaphore.run(async (): Promise<ClusterLabel> => {
         throwIfAborted(ctx.signal);
         // クラスタ構成ハッシュをキーに含める: 再クラスタリング後も同一構成なら再利用できる
         const cacheKey = `initial/${clusterId}/${compositionHash(table, deepestLevel, clusterId)}`;
         let labelled: ClusterLabel | undefined = await ctx.checkpoints.getChunk("labelling", cacheKey);
-        if (!labelled) {
+        if (!labelled || !isValidClusterLabel(labelled)) {
           const rows = rowsInCluster(table, deepestLevel, clusterId);
           const sampled = sampleRows(rows, Math.min(samplingNum, rows.length), random);
           const input = sampled.map((row) => table.argumentTexts[row]).join("\n");
@@ -126,13 +128,13 @@ export async function mergeLabelling(
     const semaphore = new Semaphore(ctx.concurrency);
     const random = ctx.random ?? Math.random;
 
-    byLevel[level] = await Promise.all(
+    byLevel[level] = await settleAll(
       clusterIds.map((clusterId) =>
         semaphore.run(async (): Promise<ClusterLabel> => {
           throwIfAborted(ctx.signal);
-          const cacheKey = `merge/${clusterId}/${compositionHash(table, level, clusterId)}`;
+          const cacheKey = `merge-v2/${clusterId}/${compositionHash(table, level, clusterId)}`;
           let labelled: ClusterLabel | undefined = await ctx.checkpoints.getChunk("labelling", cacheKey);
-          if (!labelled) {
+          if (!labelled || !isValidClusterLabel(labelled)) {
             labelled = await mergeOne(
               table,
               level,
@@ -177,7 +179,7 @@ async function mergeOne(
     return { clusterId, label: children[0].label, description: children[0].description };
   }
   if (children.length === 0) {
-    return { clusterId, label: LABEL_ERROR_PLACEHOLDER, description: DESCRIPTION_ERROR_PLACEHOLDER };
+    throw new Error(`クラスタ ${clusterId} の子ラベルがありません`);
   }
 
   const sampled = sampleRows(rows, Math.min(samplingNum, rows.length), random);

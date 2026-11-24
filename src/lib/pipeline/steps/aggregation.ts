@@ -89,7 +89,14 @@ export function meltClusters(table: ClusterTable, labels: LabellingResult): Melt
 export type AggregationInput = {
   project: Pick<
     Project,
-    "title" | "question" | "intro" | "attributeColumns" | "clusterNums" | "prompts" | "samplingNum"
+    | "title"
+    | "question"
+    | "intro"
+    | "attributeColumns"
+    | "clusterNums"
+    | "prompts"
+    | "samplingNum"
+    | "enableOriginalComments"
   >;
   comments: CommentRow[];
   extractionResult: ExtractionResult;
@@ -99,6 +106,7 @@ export type AggregationInput = {
   chatModel: string;
   embeddingModel: string;
   workers: number;
+  embeddedAtLocal?: boolean;
 };
 
 export function aggregation(input: AggregationInput): Result {
@@ -120,7 +128,7 @@ export function aggregation(input: AggregationInput): Result {
     const argument: Argument = {
       arg_id: argId,
       argument: table.argumentTexts[row],
-      comment_id: toCommentIdValue(commentId),
+      comment_id: commentId,
       x: table.x[row],
       y: table.y[row],
       p: 0,
@@ -169,7 +177,7 @@ export function aggregation(input: AggregationInput): Result {
   const usefulCommentIds = new Set(commentIdByArgId.values());
   const commentsMap: Record<string, { comment: string }> = {};
   for (const comment of comments) {
-    if (usefulCommentIds.has(comment.commentId)) {
+    if (project.enableOriginalComments === true && usefulCommentIds.has(comment.commentId)) {
       commentsMap[comment.commentId] = { comment: comment.body };
     }
   }
@@ -198,7 +206,8 @@ export function aggregation(input: AggregationInput): Result {
     model: input.chatModel,
     intro: customIntro,
     output_dir: "",
-    is_embedded_at_local: false,
+    is_embedded_at_local: input.embeddedAtLocal ?? false,
+    enable_original_comments: project.enableOriginalComments === true,
     extraction: {
       workers: input.workers,
       limit: comments.length,
@@ -252,13 +261,4 @@ export function aggregation(input: AggregationInput): Result {
     config,
     comment_num: comments.length,
   };
-}
-
-/** 本家サンプルの数値 ID は維持し、元コメントのキーを変える変換は避ける。 */
-function toCommentIdValue(commentId: string): number | string {
-  const numericId = Number(commentId);
-  if (/^\d+$/.test(commentId) && Number.isSafeInteger(numericId) && String(numericId) === commentId) {
-    return numericId;
-  }
-  return commentId;
 }

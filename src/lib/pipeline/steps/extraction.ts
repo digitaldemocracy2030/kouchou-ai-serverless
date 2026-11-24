@@ -6,7 +6,7 @@ import { throwIfAborted } from "../context";
 
 // 本家 steps/extraction.py の移植。
 // - コメント1件につき chat 呼び出し1回(並列はセマフォで制御)
-// - 同一の意見文字列は最初の arg_id に集約(本家 argument_map と同じ)
+// - 同じ回答内の同文だけをまとめ、別回答は別の意見として保持する
 // - 正常な空応答と失敗を区別し、失敗はキャッシュせず中断する。
 // - チェックポイント: コメント単位
 
@@ -86,22 +86,16 @@ export async function extraction(
   // 実行中の入力を待ってから失敗を返し、即座の再試行と競合させない。
   for (const outcome of outcomes) if (outcome.status === "rejected") throw outcome.reason;
 
-  // 重複排除しつつ arg_id を割り当てる(本家 argument_map と同じ)
+  // 本家と同じ (commentId, 文面) 単位。別回答の属性・件数を失わない。
   const argumentMap = new Map<string, ExtractedArgument>();
   const relations: Relation[] = [];
   for (let i = 0; i < comments.length; i++) {
     const commentId = comments[i].commentId;
-    const extractedArgs = perComment[i] ?? [];
-    for (let j = 0; j < extractedArgs.length; j++) {
-      const text = extractedArgs[j];
-      let argId: string;
-      const existing = argumentMap.get(text);
-      if (existing === undefined) {
-        argId = `A${commentId}_${j}`;
-        argumentMap.set(text, { argId, argument: text });
-      } else {
-        argId = existing.argId;
-      }
+    for (const [j, text] of (perComment[i] ?? []).entries()) {
+      const key = JSON.stringify([commentId, text]);
+      if (argumentMap.has(key)) continue;
+      const argId = `A${commentId}_${j}`;
+      argumentMap.set(key, { argId, argument: text });
       relations.push({ argId, commentId });
     }
   }
