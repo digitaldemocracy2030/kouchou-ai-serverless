@@ -66,11 +66,12 @@ def project_report(report):
     }, edges
 
 
-def check_case(case):
+def check_case(case, *, dumps=json.dumps):
+    case_json = dumps(case)
     model = subprocess.run(
         ["lean", "--run", "Contract.lean"],
         cwd=spec_dir(),
-        input=json.dumps(case),
+        input=case_json,
         capture_output=True,
         text=True,
         encoding="utf-8",
@@ -78,12 +79,12 @@ def check_case(case):
     )
     assert model.returncode == 0, model.stderr + model.stdout
     expected = json.loads(model.stdout)
-    python_report = python_producer()(case)
+    python_report = python_producer()(json.loads(case_json))
     if case["relations"] is None:
         # Pass the original JSON text to exercise precision before JavaScript parses it.
         case = {
             **case,
-            "legacyReport": json.dumps(
+            "legacyReport": dumps(
                 {
                     "schema_version": 1,
                     "arguments": [
@@ -110,10 +111,12 @@ def check_case(case):
     if expected.get("error"):
         assert python_report == expected
         assert typescript == expected
-        return
+        return expected
     for argument in expected["arguments"]:
         if "comment_ids" in argument:
             argument["comment_ids"].sort()
+    assert "error" not in python_report, expected
+    assert "error" not in typescript, expected
     python_projection, edges = project_report(python_report)
     typescript_projection, _ = project_report(typescript["published"])
     assert python_projection == expected
@@ -121,6 +124,7 @@ def check_case(case):
     restored = [(edge["argId"], edge["commentId"]) for edge in typescript["restored"]]
     assert len(restored) == len(edges)
     assert set(restored) == edges
+    return expected
 
 
 def relation(opinion, source):
@@ -207,6 +211,7 @@ def test_legacy_single_id_and_plural_precedence():
                 {"arg_id": "J", "comment_id": -7.0},
                 {"arg_id": "K", "comment_id": -0.0},
                 {"arg_id": "L", "comment_id": 9_007_199_254_740_991.0},
+                {"arg_id": "M", "comment_id": 1e16, "comment_ids": ["001"]},
             ],
             "relations": None,
             "comments": [{"id": "185001345000000001", "body": "旧レポートの原文"}],
@@ -236,3 +241,38 @@ def test_invalid_references_match_lean(reference):
             "inputCount": None,
         },
     )
+
+
+@pytest.mark.parametrize(
+    ("token", "id_"),
+    [
+        ("10000000000000000", "10000000000000000"),
+        ("1e16", None),
+        ("1E+16", None),
+        ("7e0", "7"),
+        ("7.5e0", None),
+        ("7.0000000000000001", "7"),
+        ('"1e16"', "1e16"),
+    ],
+)
+def test_legacy_number_token_syntax(token, id_):
+    def dump_raw_legacy_id(data):
+        # Keep the exact token in both production input and the Lean input.
+        return json.dumps(data).replace(
+            '"comment_id": "__raw_id__"', f'"comment_id": {token}'
+        )
+
+    result = check_case(
+        {
+            "arguments": [{"arg_id": "A", "comment_id": "__raw_id__"}],
+            "relations": None,
+            "comments": [],
+            "publish": False,
+            "inputCount": None,
+        },
+        dumps=dump_raw_legacy_id,
+    )
+    if id_ is None:
+        assert result == {"error": True}
+    else:
+        assert result["arguments"] == [{"arg_id": "A", "comment_id": id_}]
