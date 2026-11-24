@@ -270,6 +270,7 @@ export function InteractivePage({ projectId }: { projectId: string }) {
     setError(null);
     setLabelling(true);
     try {
+      const sourceReport = project.reportId ? (await db.reports.get(project.reportId))?.result : undefined;
       const clampN = (n: number) => Math.max(2, Math.min(n, argIds.length));
       const nums = [...new Set([clampN(Math.min(lv1, lv2)), clampN(Math.max(lv1, lv2))])];
       const clusteringResult = {
@@ -309,6 +310,7 @@ export function InteractivePage({ projectId }: { projectId: string }) {
         embeddingModel: ctx.embedding.model,
         workers: ctx.concurrency,
         embeddedAtLocal: ctx.embedding.baseUrl === LOCAL_EMBEDDING_BASE_URL,
+        sourceReport,
       });
       const reportId = crypto.randomUUID();
       await db.reports.put({

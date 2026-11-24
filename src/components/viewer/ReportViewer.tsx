@@ -141,7 +141,8 @@ export function ReportViewer({ result, title }: Props) {
             <h2>概要</h2>
             <p style={{ whiteSpace: "pre-wrap" }}>{result.overview}</p>
             <p className="viewer-meta">
-              コメント数 {result.comment_num.toLocaleString()} 件 / 意見数 {result.arguments.length.toLocaleString()} 件
+              {typeof result.comment_num === "number" && `コメント数 ${result.comment_num.toLocaleString()} 件 / `}
+              意見数 {result.arguments.length.toLocaleString()} 件
             </p>
           </section>
         )}

@@ -31,13 +31,21 @@ describe("parseResultJson", () => {
       JSON.stringify({ arguments: [], clusters: [], overview: "o", comments: {}, comment_num: 0 }),
     );
     expect(ok.overview).toBe("o");
+    expect(ok.comment_num).toBe(0);
   });
 
   it("欠けたフィールドを補完する", () => {
     const result = parseResultJson(JSON.stringify({ arguments: [], clusters: [] }));
     expect(result.overview).toBe("");
     expect(result.translations).toEqual({});
-    expect(result.comment_num).toBe(0);
+    expect(result.comment_num).toBeUndefined();
+  });
+
+  it("公開された元コメント数を入力件数として補わない", () => {
+    const result = parseResultJson(
+      JSON.stringify({ arguments: [], clusters: [], comments: { a: { comment: "原文" } } }),
+    );
+    expect(result.comment_num).toBeUndefined();
   });
 });
 

@@ -32,7 +32,8 @@ export function parseResultJson(text: string): Result {
   if (!obj.comments || typeof obj.comments !== "object") obj.comments = {};
   if (!obj.propertyMap) obj.propertyMap = {};
   if (!obj.translations) obj.translations = {};
-  if (typeof obj.comment_num !== "number") obj.comment_num = Object.keys(obj.comments).length;
+  // comments は公開された本文だけ。元の入力件数はそこから復元できない。
+  if (!Number.isSafeInteger(obj.comment_num) || obj.comment_num < 0) delete obj.comment_num;
   return obj as Result;
 }
 
