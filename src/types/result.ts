@@ -12,7 +12,8 @@ export type Result = {
   translations: Record<string, any>;
   overview: string;
   config: ResultConfig;
-  comment_num: number;
+  /** 入力の回答数。元の件数が分からないレポートでは省略する。 */
+  comment_num?: number;
 };
 
 export type Argument = {
@@ -45,10 +46,12 @@ export type ResultConfig = {
   question: string;
   input?: string;
   model: string;
+  provider?: string;
   intro: string;
   output_dir?: string;
   is_embedded_at_local: boolean;
   enable_original_comments?: boolean;
+  enable_source_link?: boolean;
   extraction: {
     workers: number;
     limit: number;

@@ -187,7 +187,8 @@ export async function exportPptx(result: Result, images: PptxImages = {}): Promi
   const title = result.config?.name || "広聴AIレポート";
   const question = result.config?.question ?? "";
   const overview = result.overview ?? "";
-  const commentNum = result.comment_num ?? 0;
+  const commentCount =
+    typeof result.comment_num === "number" ? `コメント数: ${result.comment_num.toLocaleString()} 件 / ` : "";
   const argNum = result.arguments?.length ?? 0;
   const clusters = result.clusters ?? [];
 
@@ -229,7 +230,7 @@ export async function exportPptx(result: Result, images: PptxImages = {}): Promi
     }
 
     // 統計情報
-    slide.addText(`コメント数: ${commentNum.toLocaleString()} 件 / 意見数: ${argNum.toLocaleString()} 件`, {
+    slide.addText(`${commentCount}意見数: ${argNum.toLocaleString()} 件`, {
       x: MARGIN_X,
       y: 3.95,
       w: textWidth,

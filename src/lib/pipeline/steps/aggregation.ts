@@ -107,6 +107,8 @@ export type AggregationInput = {
   embeddingModel: string;
   workers: number;
   embeddedAtLocal?: boolean;
+  /** 再クラスタリング元のレポート。属性・件数・抽出時の来歴を引き継ぐ。 */
+  sourceReport?: Result;
 };
 
 export function aggregation(input: AggregationInput): Result {
@@ -251,7 +253,7 @@ export function aggregation(input: AggregationInput): Result {
     status: "completed",
   };
 
-  return {
+  const result: Result = {
     arguments: argumentsList,
     clusters,
     comments: commentsMap,
@@ -260,5 +262,43 @@ export function aggregation(input: AggregationInput): Result {
     overview: overviewText,
     config,
     comment_num: comments.length,
+  };
+  return input.sourceReport ? preserveSourceData(result, input.sourceReport) : result;
+}
+
+function preserveSourceData(reclustered: Result, source: Result): Result {
+  const originalById = new Map(source.arguments.map((arg) => [arg.arg_id, arg]));
+  const currentIds = new Set(reclustered.arguments.map((arg) => arg.arg_id));
+  const originalConfig = source.config;
+  return {
+    ...reclustered,
+    arguments: reclustered.arguments.map((arg) => {
+      const original = originalById.get(arg.arg_id);
+      if (!original) return arg;
+      return { ...arg, attributes: original.attributes, url: original.url, p: original.p };
+    }),
+    propertyMap: Object.fromEntries(
+      Object.entries(source.propertyMap ?? {}).map(([column, values]) => [
+        column,
+        Object.fromEntries(Object.entries(values ?? {}).filter(([id]) => currentIds.has(id))),
+      ]),
+    ),
+    comment_num: source.comment_num,
+    config: {
+      ...reclustered.config,
+      intro: originalConfig?.intro ?? "",
+      model: originalConfig?.model ?? originalConfig?.extraction?.model ?? "",
+      provider: originalConfig?.provider,
+      enable_source_link: originalConfig?.enable_source_link,
+      extraction: {
+        ...reclustered.config.extraction,
+        ...originalConfig?.extraction,
+        model: originalConfig?.extraction?.model ?? originalConfig?.model ?? "",
+      },
+      hierarchical_aggregation: {
+        ...reclustered.config.hierarchical_aggregation,
+        hidden_properties: originalConfig?.hierarchical_aggregation?.hidden_properties,
+      },
+    },
   };
 }
