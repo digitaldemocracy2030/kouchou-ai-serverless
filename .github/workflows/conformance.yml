@@ -1,0 +1,67 @@
+name: Conformance with kouchou-ai
+
+# 本家（kouchou-ai の analysis-core）との適合性テストの期待値を確かめる。
+# - reproduce: 期待値が、記録した本家の commit から再生成したものと一致するか（手で書き換えていないか）
+# - drift: 本家 main の振る舞いが変わって期待値が古くなっていないか（毎週）
+# 期待値を使うテスト本体（tests/conformance）は通常の `pnpm test` に含まれ、deploy.yml で走る。
+
+on:
+  pull_request:
+    paths:
+      - "conformance/**"
+      - "tests/conformance/**"
+      - ".github/workflows/conformance.yml"
+  push:
+    branches: [main]
+    paths:
+      - "conformance/**"
+      - "tests/conformance/**"
+  schedule:
+    - cron: "0 0 * * 1" # 毎週月曜 09:00 JST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: 期待値を作った本家の commit を読む
+        id: pin
+        run: echo "commit=$(python3 -c 'import json;print(json.load(open("conformance/expected/units.json"))["kouchou_ai_commit"])')" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: digitaldemocracy2030/kouchou-ai
+          ref: ${{ steps.pin.outputs.commit }}
+          path: kouchou-ai
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -e "kouchou-ai/packages/analysis-core[clustering]"
+      - run: python conformance/generate_expected.py --kouchou-ai kouchou-ai
+      - name: 再生成した期待値が commit 済みのものと一致する
+        run: git diff --exit-code -- conformance/expected
+
+  drift:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: digitaldemocracy2030/kouchou-ai
+          path: kouchou-ai
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -e "kouchou-ai/packages/analysis-core[clustering]"
+      - run: python conformance/generate_expected.py --kouchou-ai kouchou-ai
+      - name: 本家 main で期待値が変わっていない
+        run: |
+          if ! git diff --exit-code -I '"kouchou_ai_commit"' -- conformance/expected; then
+            echo "::error::本家 main の振る舞いが変わり、期待値が古くなっています。conformance/README.md の手順で再生成し、差分をレビューしてください。"
+            exit 1
+          fi

@@ -1,0 +1,50 @@
+{
+  "kouchou_ai_commit": "3649fe417d2ee441e3475350e89ff6f4b35980e8",
+  "generator": "conformance/generate_expected.py",
+  "case": "duplicate-across-comments",
+  "extraction": {
+    "args": [
+      {
+        "arg_id": "A1_0",
+        "argument": "公園にベンチを増やしてほしい。"
+      },
+      {
+        "arg_id": "A1_1",
+        "argument": "照明を明るくしてほしい。"
+      },
+      {
+        "arg_id": "A2_0",
+        "argument": "公園にベンチを増やしてほしい。"
+      },
+      {
+        "arg_id": "A3_0",
+        "argument": "トイレを清潔にしてほしい。"
+      }
+    ],
+    "relations": [
+      {
+        "arg_id": "A1_0",
+        "comment_id": "1"
+      },
+      {
+        "arg_id": "A1_1",
+        "comment_id": "1"
+      },
+      {
+        "arg_id": "A2_0",
+        "comment_id": "2"
+      },
+      {
+        "arg_id": "A3_0",
+        "comment_id": "3"
+      }
+    ]
+  },
+  "llm_requests": {
+    "extraction": [
+      "公園にベンチを増やしてほしい。照明を明るくしてほしい。",
+      "公園にベンチを増やしてほしい。",
+      "トイレを清潔にしてほしい。"
+    ]
+  }
+}
