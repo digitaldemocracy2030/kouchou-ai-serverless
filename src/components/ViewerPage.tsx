@@ -217,7 +217,7 @@ export function ViewerPage({ reportId }: { reportId: string }) {
   return (
     <div>
       {Object.keys(report.result.comments ?? {}).length > 0 && (
-        <label>
+        <label className="checkbox-label">
           <input
             type="checkbox"
             checked={exportResult.config.enable_original_comments}

@@ -328,7 +328,7 @@ export function WizardPage() {
       {step === 3 && (
         <div className="card">
           <h2>Step 3: 分析設定</h2>
-          <label>
+          <label className="checkbox-label">
             <input
               type="checkbox"
               checked={enableOriginalComments}
