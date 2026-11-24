@@ -84,7 +84,7 @@ describe("meltClusters", () => {
 });
 
 describe("aggregation", () => {
-  it("本家互換の Result JSON を組み立てる", () => {
+  it.each([false, true])("本家互換の Result JSON を組み立てる (チャットのブラウザ内実行: %s)", (chatInBrowser) => {
     const { table, labels } = fixtures();
     const result = aggregation({
       project: {
@@ -120,6 +120,7 @@ describe("aggregation", () => {
       labels,
       overviewText: "全体概要",
       chatModel: "gpt-4o-mini",
+      chatInBrowser,
       embeddingModel: "text-embedding-3-small",
       workers: 8,
     });
@@ -150,6 +151,7 @@ describe("aggregation", () => {
     // overview / config
     expect(result.overview).toBe("全体概要");
     expect(result.config.question).toBe("Q");
+    expect(result.config.intro).toContain(chatInBrowser ? "ブラウザ内実行" : "OpenAI 互換 API");
     expect(result.translations).toEqual({});
   });
 });

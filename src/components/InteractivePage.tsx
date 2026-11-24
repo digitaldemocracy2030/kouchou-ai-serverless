@@ -1,6 +1,7 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { exportPreprocessed } from "../lib/export";
+import { isGeminiNano } from "../lib/llm/geminiNano";
 import { DEFAULT_LOCAL_EMBEDDING_MODEL, LOCAL_EMBEDDING_BASE_URL } from "../lib/llm/localEmbedding";
 import { clusterXY } from "../lib/pipeline/clusteringCore";
 import { buildClusterTable } from "../lib/pipeline/clusterTable";
@@ -306,6 +307,7 @@ export function InteractivePage({ projectId }: { projectId: string }) {
         labels,
         overviewText,
         chatModel: ctx.chat.model,
+        chatInBrowser: isGeminiNano(ctx.chat),
         embeddingModel: ctx.embedding.model,
         workers: ctx.concurrency,
         embeddedAtLocal: ctx.embedding.baseUrl === LOCAL_EMBEDDING_BASE_URL,
