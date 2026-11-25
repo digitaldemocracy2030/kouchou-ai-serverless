@@ -126,8 +126,20 @@ export function FirstAnalysisSetupPage() {
       {needsSetup ? (
         <form className="card" onSubmit={submit}>
           <label htmlFor="first-analysis-provider">分析に使うAI</label>
+          <ul className="note first-analysis-hints" id="first-analysis-provider-hints">
+            <li>
+              <b>APIキーをお持ちなら</b>、そのサービスを選んでください。
+            </li>
+            <li>
+              新しくキーを作るなら <b>OpenAI</b>。意見の整理と類似度計算に同じキーを使えます。
+            </li>
+            <li>
+              キーなしで自分のCSVを試すなら <b>Gemini Nano</b>。対応するChromeで使えます。
+            </li>
+          </ul>
           <select
             id="first-analysis-provider"
+            aria-describedby="first-analysis-provider-hints"
             value={selected}
             disabled={checking}
             onChange={(event) => {

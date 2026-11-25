@@ -251,6 +251,13 @@ button.home-guide-trigger:hover {
   margin-top: 0;
 }
 
+.first-analysis-hints {
+  display: grid;
+  gap: 4px;
+  margin: 4px 0 12px;
+  padding-inline-start: 1.25em;
+}
+
 .report-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));

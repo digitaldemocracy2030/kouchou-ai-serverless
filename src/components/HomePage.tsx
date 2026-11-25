@@ -112,9 +112,7 @@ export function HomePage() {
     <main>
       <header className="home-header">
         <h1>レポート一覧</h1>
-        {hasSavedWork !== undefined && !hasOwnWork && (
-          <p>自由記述を似た意見ごとにまとめます。サンプルは設定なしで見られます。</p>
-        )}
+        {hasSavedWork !== undefined && !hasOwnWork && <p>初めて使う方は、設定なしで見られるサンプルから試せます。</p>}
         <div className="row">
           {!hasOwnWork && sampleLink}
           <a className={hasOwnWork ? "action-link primary" : "action-link"} href={needsSetup ? "#/setup" : "#/new"}>

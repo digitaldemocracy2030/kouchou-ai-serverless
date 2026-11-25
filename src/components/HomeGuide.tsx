@@ -51,7 +51,7 @@ export function HomeGuide({ hasSavedWork, needsSetup }: { hasSavedWork: boolean 
             >
               サンプルを見る
             </a>
-            <p id="guide-sample-note">設定不要。仮想アンケートで意見のまとまりを確認できます。</p>
+            <p id="guide-sample-note">初めてなら、まずはサンプルがおすすめです。設定なしで分析結果を見られます。</p>
           </div>
           <div>
             <a className="action-link" href={needsSetup ? "#/setup" : "#/new"} aria-describedby="guide-create-note">
