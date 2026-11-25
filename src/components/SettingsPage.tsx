@@ -734,21 +734,21 @@ function StorageCard() {
     setStatus(await getStorageStatus());
     setMessage(
       granted
-        ? "永続化されました。ブラウザの空き容量が逼迫しても、このサイトのデータは自動削除されません。"
-        : "ブラウザに拒否されました。Chrome はサイトの利用実績から自動判定するため、このサイトをブックマークしたり何度か利用したあとに再試行すると通ることがあります。",
+        ? "保存データの自動削除を防ぐ設定が有効になりました。"
+        : "ブラウザの許可が得られず、自動削除からの保護は無効のままです。",
     );
     setRequesting(false);
   };
 
   return (
     <div className="card">
-      <h2>ストレージ</h2>
+      <h2>ブラウザの保存データ</h2>
       {status === null ? (
         <p className="note">確認中...</p>
       ) : (
         <>
           <p>
-            永続化: <b>{!status.supported ? "非対応のブラウザ" : status.persisted ? "有効" : "無効"}</b>
+            自動削除からの保護: <b>{!status.supported ? "非対応のブラウザ" : status.persisted ? "有効" : "無効"}</b>
             {status.usage !== null && (
               <span className="note">
                 {" / "}使用量 {formatBytes(status.usage)}
@@ -756,29 +756,19 @@ function StorageCard() {
               </span>
             )}
           </p>
-          <p className="note">
-            このアプリのデータ(レポート・プロジェクト・LLM で生成した中間データ)は、
-            サーバではなくブラウザにしか存在しません。永続化が<b>無効</b>だと、
-            端末の空き容量が逼迫したときにブラウザの判断で<b>まとめて削除されることがあります</b>。 中間データは LLM
-            課金で得たものなので、消えると再取得に実費がかかります。
-          </p>
-          <p className="note">
-            永続化は<b>オリジン単位</b>で、IndexedDB・OPFS・Cache Storage
-            (ローカル埋め込みモデル)をまとめて対象にします。API ごとの指定はできません。
-          </p>
           {status.supported && !status.persisted && (
-            <button type="button" onClick={request} disabled={requesting}>
-              {requesting ? "要求中..." : "永続化を要求する"}
-            </button>
+            <>
+              <p className="note" id="storage-protection-note">
+                端末の空き容量が少なくなっても、レポートや分析途中のデータを自動で消さないようブラウザに頼みます。
+              </p>
+              <button type="button" onClick={request} disabled={requesting} aria-describedby="storage-protection-note">
+                {requesting ? "ブラウザに確認中…" : "保存データの自動削除を防ぐ"}
+              </button>
+            </>
           )}
-          {message && (
-            <p className="note" style={{ marginTop: 8 }}>
-              {message}
-            </p>
-          )}
+          <div role="status">{message && <p className="note">{message}</p>}</div>
           <p className="note">
-            永続化は保証ではありません(ブラウザのデータ消去操作では消えます)。 完成したレポートは JSON
-            でエクスポートしておくのが確実です。
+            自分でサイトデータを消すと、保護が有効でも失われます。残しておきたいレポートはJSONで書き出してください。
           </p>
         </>
       )}
