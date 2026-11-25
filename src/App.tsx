@@ -87,7 +87,7 @@ export function App() {
         <a href={needsSetup ? "#/setup" : "#/new"}>新規作成</a>
         <a href="#/settings">設定</a>
         <a
-          href="https://github.com/tokoroten/kouchou-ai-serverless"
+          href="https://github.com/digitaldemocracy2030/kouchou-ai-serverless"
           target="_blank"
           rel="noreferrer"
           style={{ marginLeft: "auto" }}

@@ -91,7 +91,7 @@ function StandaloneApp() {
       <ReportViewer result={result} title={meta?.title} />
       {ponchie?.dataUrl && <PonchieSection ponchie={ponchie} />}
       <footer className="app-footer">
-        <a href="https://github.com/tokoroten/kouchou-ai-serverless" target="_blank" rel="noreferrer">
+        <a href="https://github.com/digitaldemocracy2030/kouchou-ai-serverless" target="_blank" rel="noreferrer">
           広聴AI サーバレス版で生成
         </a>
       </footer>

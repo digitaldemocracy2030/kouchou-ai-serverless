@@ -6,7 +6,7 @@
 (意見抽出 → 埋め込み → UMAP → 階層クラスタリング → LLM ラベリング → レポート生成)を
 TypeScript で再実装し、静的サイトとして配布しています。サーバ・Python・Docker は不要です。
 
-**▶ 使ってみる: https://tokoroten.github.io/kouchou-ai-serverless/**
+**▶ 使ってみる: https://digitaldemocracy2030.github.io/kouchou-ai-serverless/**
 
 ## 系譜
 
@@ -23,6 +23,9 @@ TTTC-scatter (Talk to the City)  →  広聴AI (kouchou-ai)  →  広聴AI サ�
    (階層クラスタリング、日本語プロンプト、管理画面など)。FastAPI + Next.js + Docker 構成。
 3. **広聴AI サーバレス版(本プロジェクト)** — 広聴AI の分析パイプラインをブラウザ内で完結する形に
    再実装し、URL を開くだけで使えるようにしたもの。出力は広聴AI とスキーマ互換。
+   [tokoroten](https://github.com/tokoroten) が
+   [tokoroten/kouchou-ai-serverless](https://github.com/tokoroten/kouchou-ai-serverless) で作り始め、
+   2026-11-24 にデジタル民主主義2030 の org へ fork して、ここで開発を続けている。
 
 ## 使い方(3ステップ)
 
