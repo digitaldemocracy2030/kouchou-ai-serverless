@@ -10,7 +10,7 @@ import { db, deleteProjectData, deleteReportWithImage, requestPersistentStorage 
 import { PROJECT_KIND } from "../stance-spectrum/storageKeys";
 import { useSettings } from "../store/settings";
 import type { Project } from "../types/project";
-import { estimateActualCostUsd, resolveEndpoint } from "../types/settings";
+import { estimateActualCostUsd, needsInitialAnalysisSetup, resolveEndpoint } from "../types/settings";
 import { HomeGuide } from "./HomeGuide";
 
 // ホーム / レポート一覧(DESIGN §7-1)。
@@ -42,6 +42,7 @@ export function HomePage() {
   const hasOwnWork =
     unfinishedProjects.length > 0 || reports?.some((report) => report.id !== SAMPLE_REPORT_ID) === true;
   const hasSavedWork = reports && projects ? reports.length > 0 || projects.length > 0 : undefined;
+  const needsSetup = needsInitialAnalysisSetup(settings);
 
   // Result JSON と前処理データ(.preprocessed.json)の両方を受け付ける
   const importJson = async (file: File) => {
@@ -116,14 +117,14 @@ export function HomePage() {
         )}
         <div className="row">
           {!hasOwnWork && sampleLink}
-          <a className={hasOwnWork ? "action-link primary" : "action-link"} href="#/new">
+          <a className={hasOwnWork ? "action-link primary" : "action-link"} href={needsSetup ? "#/setup" : "#/new"}>
             新規レポート作成
           </a>
           {hasOwnWork && sampleLink}
           <button type="button" onClick={() => importRef.current?.click()}>
             JSON インポート
           </button>
-          <HomeGuide hasSavedWork={hasSavedWork} />
+          <HomeGuide hasSavedWork={hasSavedWork} needsSetup={needsSetup} />
           <input
             ref={importRef}
             type="file"

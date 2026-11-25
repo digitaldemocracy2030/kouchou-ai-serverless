@@ -1,14 +1,25 @@
 import { navigate } from "../lib/router";
 import { useSettings } from "../store/settings";
-import { pipelineReadiness } from "../types/settings";
+import { needsInitialAnalysisSetup, pipelineReadiness } from "../types/settings";
 
 // 環境構築(LLM プロバイダ設定 + 疎通確認)が済んでいないことを知らせるバナー。
 // 新規作成ウィザードと賛否スペクトラム新規作成で共用する。
 
-export function SetupBanner() {
+export function SetupBanner({ offerFirstSetup = false }: { offerFirstSetup?: boolean }) {
   const { settings } = useSettings();
   const { ready, blocked, slots } = pipelineReadiness(settings);
   if (ready) return null;
+
+  if (offerFirstSetup && needsInitialAnalysisSetup(settings)) {
+    return (
+      <div className="warn-box">
+        <p>分析を始めるには、使うAIの設定が必要です。</p>
+        <a className="action-link primary" href="#/setup">
+          はじめての分析設定へ
+        </a>
+      </div>
+    );
+  }
 
   const missing = slots.filter((s) => s.readiness.state !== "ok");
 

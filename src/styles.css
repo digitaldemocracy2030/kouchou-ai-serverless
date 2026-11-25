@@ -243,6 +243,14 @@ button.home-guide-trigger:hover {
   white-space: nowrap;
 }
 
+.first-analysis-setup {
+  max-width: 36rem;
+}
+
+.first-analysis-setup form > label {
+  margin-top: 0;
+}
+
 .report-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));

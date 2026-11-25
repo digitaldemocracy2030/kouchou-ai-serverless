@@ -4,7 +4,7 @@ import { SAMPLE_REPORT_ID } from "../lib/sampleReport";
 const STORAGE_KEY = "kouchou-ai:home-guide-seen";
 let guideChecked = false;
 
-export function HomeGuide({ hasSavedWork }: { hasSavedWork: boolean | undefined }) {
+export function HomeGuide({ hasSavedWork, needsSetup }: { hasSavedWork: boolean | undefined; needsSetup: boolean }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
@@ -54,10 +54,12 @@ export function HomeGuide({ hasSavedWork }: { hasSavedWork: boolean | undefined 
             <p id="guide-sample-note">設定不要。仮想アンケートで意見のまとまりを確認できます。</p>
           </div>
           <div>
-            <a className="action-link" href="#/new" aria-describedby="guide-create-note">
+            <a className="action-link" href={needsSetup ? "#/setup" : "#/new"} aria-describedby="guide-create-note">
               自分のCSVを分析する
             </a>
-            <p id="guide-create-note">分析を実行するには、使うAIの設定が必要です。</p>
+            <p id="guide-create-note">
+              {needsSetup ? "OpenAIのAPIキーから、初回の分析設定を始められます。" : "手元のCSVからレポートを作れます。"}
+            </p>
           </div>
         </div>
         <div className="home-guide-footer">

@@ -2,8 +2,12 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import {
   DEFAULT_SETTINGS,
+  endpointFingerprint,
+  needsInitialAnalysisSetup,
+  OPENAI_PRESET,
   type PresetId,
   type ProviderConfig,
+  resolveEndpoint,
   type Settings,
   type SlotName,
   type SlotSelection,
@@ -49,6 +53,7 @@ type SettingsStore = {
   setConcurrency: (n: number) => void;
   /** 疎通確認の成否を記録する(成功なら指紋つきで保存、失敗なら記録を消す) */
   setVerification: (slot: SlotName, fingerprint: string | null) => void;
+  saveInitialOpenAiSetup: (apiKey: string) => void;
   clearAll: () => void;
 };
 
@@ -98,6 +103,30 @@ export const useSettings = create<SettingsStore>()(
           if (fingerprint) verification[slot] = { fingerprint, at: Date.now() };
           else delete verification[slot];
           return { settings: { ...state.settings, verification } };
+        }),
+      saveInitialOpenAiSetup: (apiKey) =>
+        set((state) => {
+          if (!needsInitialAnalysisSetup(state.settings)) return state;
+          const settings: Settings = {
+            ...state.settings,
+            providers: {
+              ...state.settings.providers,
+              openai: { baseUrl: OPENAI_PRESET.baseUrl, apiKey },
+            },
+            chatSlot: { provider: "openai", model: OPENAI_PRESET.chatModel },
+            embeddingSlot: { provider: "openai", model: OPENAI_PRESET.embeddingModel },
+          };
+          const at = Date.now();
+          return {
+            settings: {
+              ...settings,
+              verification: {
+                ...settings.verification,
+                chat: { fingerprint: endpointFingerprint(resolveEndpoint(settings, "chat")), at },
+                embedding: { fingerprint: endpointFingerprint(resolveEndpoint(settings, "embedding")), at },
+              },
+            },
+          };
         }),
       clearAll: () => set({ settings: DEFAULT_SETTINGS }),
     }),

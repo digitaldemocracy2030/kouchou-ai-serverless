@@ -4,6 +4,7 @@ const ViewerStates = import.meta.env.DEV
   ? lazy(() => import("./components/dev/ViewerStates").then((m) => ({ default: m.ViewerStates })))
   : null;
 
+import { FirstAnalysisSetupPage } from "./components/FirstAnalysisSetupPage";
 import { HomePage } from "./components/HomePage";
 import { InteractivePage } from "./components/InteractivePage";
 import { RunPage } from "./components/RunPage";
@@ -14,6 +15,8 @@ import { StanceSpectrumHome, StanceSpectrumPage } from "./components/StanceSpect
 import { ViewerPage } from "./components/ViewerPage";
 import { WizardPage } from "./components/WizardPage";
 import { navigate, useHashRoute } from "./lib/router";
+import { useSettings } from "./store/settings";
+import { needsInitialAnalysisSetup } from "./types/settings";
 
 // 旧ルート #/phase2... は 2026-07-18 のリネームで #/stance-spectrum... になった。
 // 既存のブックマークや共有リンクを壊さないよう、同じパス構造のまま読み替える。
@@ -21,6 +24,7 @@ const LEGACY_ROUTE_PREFIX = "/phase2";
 
 export function App() {
   const route = useHashRoute();
+  const needsSetup = useSettings((state) => needsInitialAnalysisSetup(state.settings));
   const isLegacyRoute = route === LEGACY_ROUTE_PREFIX || route.startsWith(`${LEGACY_ROUTE_PREFIX}/`);
 
   useEffect(() => {
@@ -41,6 +45,8 @@ export function App() {
     page = <HomePage />;
   } else if (route === "/settings") {
     page = <SettingsPage />;
+  } else if (route === "/setup") {
+    page = <FirstAnalysisSetupPage />;
   } else if (route === "/new") {
     page = <WizardPage />;
   } else if (route.startsWith("/run/")) {
@@ -78,7 +84,7 @@ export function App() {
           広聴AI サーバレス版
         </a>
         <a href="#/">レポート一覧</a>
-        <a href="#/new">新規作成</a>
+        <a href={needsSetup ? "#/setup" : "#/new"}>新規作成</a>
         <a href="#/settings">設定</a>
         <a
           href="https://github.com/tokoroten/kouchou-ai-serverless"
