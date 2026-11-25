@@ -118,6 +118,12 @@ export function ViewerPage({ reportId }: { reportId: string }) {
     return <p>{sampleError ? `サンプルの読み込みに失敗しました: ${sampleError}` : "サンプルを読み込み中..."}</p>;
   }
 
+  // 同梱の仮想アンケートは元の回答も公開済み。保存済みの旧サンプルにも適用する。
+  const viewResult =
+    report.id === SAMPLE_REPORT_ID && report.result.config?.enable_original_comments === undefined
+      ? { ...report.result, config: { ...report.result.config, enable_original_comments: true } }
+      : report.result;
+
   // 生成元プロジェクトがあるか、レポート自体に座標が入っていれば再クラスタリングできる
   const reclusterable = !!project || canRecluster(report.result);
 
@@ -217,7 +223,7 @@ export function ViewerPage({ reportId }: { reportId: string }) {
   return (
     <div>
       <ReportViewer
-        result={report.result}
+        result={viewResult}
         title={report.title}
         actions={
           <details className="viewer-actions">
