@@ -3,13 +3,9 @@ import { useSettings } from "../store/settings";
 import { pipelineReadiness } from "../types/settings";
 
 // 環境構築(LLM プロバイダ設定 + 疎通確認)が済んでいないことを知らせるバナー。
-// トップ / 新規作成ウィザード / 賛否スペクトラム新規作成で共用する。
-//
-// 表現の方針: サンプル閲覧と既存レポートの表示は設定ゼロでも動くため、
-// 「アプリが壊れている」ように見せない。足りないものを具体的に挙げ、
-// 「新規作成には設定が必要」という限定した言い方にする。
+// 新規作成ウィザードと賛否スペクトラム新規作成で共用する。
 
-export function SetupBanner({ context = "home" }: { context?: "home" | "create" }) {
+export function SetupBanner() {
   const { settings } = useSettings();
   const { ready, blocked, slots } = pipelineReadiness(settings);
   if (ready) return null;
@@ -18,7 +14,7 @@ export function SetupBanner({ context = "home" }: { context?: "home" | "create" 
 
   return (
     <div className="warn-box">
-      <b>{blocked ? "環境構築がまだ終わっていません" : "疎通確認がまだです"}</b>
+      <b>{blocked ? "分析を実行するにはAIの設定が必要です" : "AIの接続確認がまだです"}</b>
       <ul style={{ margin: "6px 0", paddingLeft: "1.2em" }}>
         {missing.map((s) => (
           <li key={s.slot}>{s.readiness.reason}</li>
@@ -30,10 +26,8 @@ export function SetupBanner({ context = "home" }: { context?: "home" | "create" 
         </button>
         <span className="note" style={{ margin: 0 }}>
           {blocked
-            ? context === "create"
-              ? "この状態では実行できません。設定画面で API キーとモデルを設定してください。"
-              : "新規レポート作成には LLM の設定が必要です。サンプル閲覧と既存レポートの表示は設定なしで使えます。"
-            : "設定は揃っています。設定画面の「一括疎通確認を実行」で、キーとモデルが実際に動くか確かめられます。"}
+            ? "使うAIサービスとモデルを設定してください。"
+            : "設定画面の「接続を確認する」で、使うモデルが応答するか確かめられます。"}
         </span>
       </div>
     </div>

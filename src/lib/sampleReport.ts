@@ -2,8 +2,7 @@ import { parseResultJson } from "./export";
 import { db, putReportImage } from "./storage/db";
 
 // 同梱サンプルレポート(実データで生成した本家互換 JSON)。
-// ホームの「サンプルを見る」と、#/report/sample への直リンク(IndexedDB 未登録の
-// ブラウザで開いた場合)の両方から呼ぶ。
+// #/report/sample を開いたブラウザの IndexedDB にまだ登録されていないときに呼ぶ。
 export const SAMPLE_REPORT_ID = "sample";
 
 export async function importSampleReport(): Promise<void> {

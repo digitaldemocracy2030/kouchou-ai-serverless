@@ -41,7 +41,8 @@ h3 {
   font-size: 1rem;
 }
 
-button {
+button,
+.action-link {
   font: inherit;
   cursor: pointer;
   border: 1px solid var(--border);
@@ -49,15 +50,18 @@ button {
   background: var(--card-bg);
   padding: 8px 16px;
 }
-button:hover {
+button:hover,
+.action-link:hover {
   background: #f1f5f9;
 }
-button.primary {
+button.primary,
+.action-link.primary {
   background: var(--primary);
   border-color: var(--primary);
   color: white;
 }
-button.primary:hover {
+button.primary:hover,
+.action-link.primary:hover {
   background: var(--primary-dark);
 }
 button.danger {
@@ -67,6 +71,19 @@ button.danger {
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.action-link {
+  display: inline-block;
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.action-link:focus-visible,
+.home-guide button:focus-visible,
+.home-guide-trigger:focus-visible {
+  outline: 2px solid var(--primary-dark);
+  outline-offset: 3px;
 }
 
 input,
@@ -128,6 +145,7 @@ label {
 
 .app-nav {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 16px;
   padding: 12px 0;
@@ -151,9 +169,83 @@ label {
   align-items: center;
 }
 
+.home-header {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.home-header h1 {
+  margin-bottom: 4px;
+}
+
+.home-header > p {
+  margin: 0 0 12px;
+  color: var(--muted);
+}
+
+.home-header .row {
+  margin-top: 12px;
+}
+
+button.home-guide-trigger {
+  color: var(--primary-dark);
+  background: transparent;
+  border-color: transparent;
+}
+
+button.home-guide-trigger:hover {
+  text-decoration: underline;
+}
+
+.home-guide {
+  width: min(33rem, calc(100% - 32px));
+  max-height: calc(100% - 32px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: clamp(16px, 5vw, 28px);
+  color: var(--fg);
+  background: var(--card-bg);
+  box-shadow: 0 12px 40px rgb(15 23 42 / 22%);
+}
+
+.home-guide::backdrop {
+  background: rgb(15 23 42 / 55%);
+}
+
+.home-guide h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.home-guide p {
+  margin: 6px 0 0;
+}
+
+.home-guide-options {
+  display: grid;
+  gap: 16px;
+  margin: 20px 0 16px;
+}
+
+.home-guide-options p {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.home-guide-footer {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.wizard-heading .note {
+  white-space: nowrap;
+}
+
 .report-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap: 12px;
 }
 
@@ -219,17 +311,28 @@ table.preview-table {
 }
 .viewer-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin: 16px 0 8px;
   align-items: center;
 }
-.viewer-tabs button.active {
+.viewer-tabs button[aria-pressed="true"] {
   background: var(--primary);
   color: white;
   border-color: var(--primary);
 }
 .viewer-tabs select {
   width: auto;
+  max-width: 100%;
+}
+.viewer-actions {
+  margin-bottom: 12px;
+}
+.viewer-actions summary {
+  width: fit-content;
+  padding: 8px 0;
+  cursor: pointer;
+  color: var(--primary-dark);
 }
 .viewer-chart {
   height: 560px;
@@ -240,7 +343,7 @@ table.preview-table {
 }
 .cluster-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
   gap: 12px;
 }
 

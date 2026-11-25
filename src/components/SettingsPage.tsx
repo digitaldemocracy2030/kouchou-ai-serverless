@@ -8,6 +8,7 @@ import {
   isProviderConfigured,
   PRESETS,
   type PresetId,
+  pipelineReadiness,
   resolveEndpoint,
   supportsImageGeneration,
 } from "../types/settings";
@@ -588,6 +589,7 @@ function HealthCheckCard() {
   const { settings, setVerification } = useSettings();
   const [items, setItems] = useState<HealthItem[] | null>(null);
   const [running, setRunning] = useState(false);
+  const canContinue = pipelineReadiness(settings).ready && !running;
 
   const run = async () => {
     setRunning(true);
@@ -633,7 +635,7 @@ function HealthCheckCard() {
           ? `${probe.message} / 入力:「${probe.input}」→ 出力:「${probe.output.slice(0, 80)}${probe.output.length > 80 ? "…" : ""}」`
           : probe.message,
       );
-      // 実応答まで通った構成だけを「疎通確認済み」として残す(トップの警告が消える条件)
+      // 実応答まで通った構成だけを「接続確認済み」として残す。
       setVerification("chat", probe.ok ? endpointFingerprint(chat) : null);
     }
 
@@ -663,10 +665,17 @@ function HealthCheckCard() {
   return (
     <div className="card">
       <div className="row" style={{ justifyContent: "space-between" }}>
-        <h2 style={{ margin: 0 }}>ヘルスチェック</h2>
-        <button type="button" className="primary" onClick={run} disabled={running}>
-          {running ? "チェック中..." : "一括疎通確認を実行"}
-        </button>
+        <h2 style={{ margin: 0 }}>AIの接続確認</h2>
+        <div className="row">
+          <button type="button" className={canContinue ? undefined : "primary"} onClick={run} disabled={running}>
+            {running ? "確認中..." : "接続を確認する"}
+          </button>
+          {canContinue && (
+            <a className="action-link primary" href="#/new">
+              新規レポート作成へ
+            </a>
+          )}
+        </div>
       </div>
       <p className="note">API キー・チャット・埋め込みの疎通をまとめて確認します(小さな実リクエストが発生します)。</p>
       {items && (
@@ -886,11 +895,12 @@ export function SettingsPage() {
   return (
     <div>
       <h1>設定</h1>
+      <p>新しい分析に使うサービスを登録し、チャットと埋め込みのモデルを選んでから接続を確認します。</p>
       <ProviderKeysCard />
       <SlotCard slot="chat" />
       <SlotCard slot="embedding" />
-      <ImageSlotCard />
       <HealthCheckCard />
+      <ImageSlotCard />
       <div className="card">
         <h2>実行設定</h2>
         <label>LLM リクエストの並列数(既定 8)</label>

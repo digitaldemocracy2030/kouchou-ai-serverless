@@ -38,6 +38,20 @@ async function main() {
   // 1. ホーム
   await page.goto(`${BASE}/#/`);
   await page.waitForLoadState("networkidle");
+  const guide = page.getByRole("dialog", { name: "広聴AI サーバレス版の使い方" });
+  await guide.waitFor({ state: "visible" });
+  await page.keyboard.press("Escape");
+  await guide.waitFor({ state: "hidden" });
+  const openGuide = page.getByRole("button", { name: "使い方", exact: true });
+  check(
+    "初回ガイドを閉じると「使い方」にフォーカスが戻る",
+    await openGuide.evaluate((el) => el === document.activeElement),
+  );
+  await page.reload();
+  await page.waitForLoadState("networkidle");
+  check("初回ガイドの表示を記憶", !(await guide.isVisible()));
+  await openGuide.click();
+  await guide.getByRole("button", { name: "閉じる" }).click();
   check(
     "ホーム表示",
     await page
@@ -138,6 +152,7 @@ async function main() {
   check("リロード後もレポート表示(IndexedDB)", (await page.locator(".cluster-card").count()) > 0);
 
   // 前処理データのエクスポート → インポート → 後処理のみ再実行(LLM抽出・埋め込みはスキップ)
+  await page.getByText("書き出し・再クラスタリング", { exact: true }).click();
   await page.getByRole("button", { name: /クラスタリングを再実行/ }).click();
   await page.getByRole("button", { name: "前処理データをエクスポート" }).waitFor({ timeout: 15000 });
   const preDownloadPromise = page.waitForEvent("download", { timeout: 30000 });

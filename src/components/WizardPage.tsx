@@ -195,8 +195,10 @@ export function WizardPage() {
 
   return (
     <div>
-      <h1>新規レポート作成 — Step {step}/4</h1>
-      <SetupBanner context="create" />
+      <h1 className="wizard-heading">
+        新規レポート作成 <span className="note">手順 {step}/4</span>
+      </h1>
+      <SetupBanner />
       {error && <div className="error-box">{error}</div>}
       {step > 1 && preview && (
         <p className="note">

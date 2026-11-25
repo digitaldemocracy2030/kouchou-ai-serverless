@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import type { Result } from "../../types/result";
 import {
   AttributeFilter,
@@ -24,13 +24,13 @@ type ChartTab = "scatter" | "density" | "treemap" | "hierarchy";
 type Props = {
   result: Result;
   title?: string;
+  actions?: ReactNode;
 };
 
-export function ReportViewer({ result, title }: Props) {
-  const [tab, setTab] = useState<ChartTab>("scatter");
-  useEffect(() => {
-    if (window.matchMedia("(max-width: 600px)").matches) setTab("hierarchy");
-  }, []);
+export function ReportViewer({ result, title, actions }: Props) {
+  const [tab, setTab] = useState<ChartTab>(() =>
+    window.matchMedia("(max-width: 600px)").matches ? "hierarchy" : "scatter",
+  );
   const [treemapLevel, setTreemapLevel] = useState("0");
   const [selectedClusterId, setSelectedClusterId] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterParams>(EMPTY_FILTER);
@@ -78,22 +78,27 @@ export function ReportViewer({ result, title }: Props) {
         {result.config?.question && <p className="viewer-question">{result.config.question}</p>}
       </header>
 
+      {actions}
       <ReadingGuide />
-      <nav className="viewer-tabs">
-        <button type="button" className={tab === "scatter" ? "active" : ""} onClick={() => setTab("scatter")}>
+      <nav className="viewer-tabs" aria-label="意見の表示方法">
+        <button type="button" aria-pressed={tab === "scatter"} onClick={() => setTab("scatter")}>
           散布図
         </button>
-        <button type="button" className={tab === "density" ? "active" : ""} onClick={() => setTab("density")}>
+        <button type="button" aria-pressed={tab === "density"} onClick={() => setTab("density")}>
           濃い意見グループ
         </button>
-        <button type="button" className={tab === "treemap" ? "active" : ""} onClick={() => setTab("treemap")}>
+        <button type="button" aria-pressed={tab === "treemap"} onClick={() => setTab("treemap")}>
           ツリーマップ
         </button>
-        <button type="button" className={tab === "hierarchy" ? "active" : ""} onClick={() => setTab("hierarchy")}>
+        <button type="button" aria-pressed={tab === "hierarchy"} onClick={() => setTab("hierarchy")}>
           階層リスト
         </button>
         {tab === "scatter" && levels.length > 1 && (
-          <select value={scatterLevel} onChange={(e) => setScatterLevel(Number(e.target.value))}>
+          <select
+            aria-label="散布図の階層"
+            value={scatterLevel}
+            onChange={(e) => setScatterLevel(Number(e.target.value))}
+          >
             {levels.map((level) => (
               <option key={level} value={level}>
                 第{level}階層 ({result.clusters.filter((c) => c.level === level).length} グループ)
