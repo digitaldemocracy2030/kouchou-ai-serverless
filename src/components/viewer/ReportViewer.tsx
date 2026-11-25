@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode, useMemo, useRef, useState } from "react";
 import type { Result } from "../../types/result";
 import {
   AttributeFilter,
@@ -34,6 +34,7 @@ export function ReportViewer({ result, title, actions }: Props) {
   const [treemapLevel, setTreemapLevel] = useState("0");
   const [selectedClusterId, setSelectedClusterId] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterParams>(EMPTY_FILTER);
+  const hierarchyTabRef = useRef<HTMLButtonElement>(null);
   const [showLabels, setShowLabels] = useState(true);
   const [showHull, setShowHull] = useState(true);
 
@@ -46,6 +47,8 @@ export function ReportViewer({ result, title, actions }: Props) {
 
   const attributeMetas = useMemo(() => computeAttributeMetas(result.arguments), [result]);
   const filteredIds = useMemo(() => filterArgumentIds(result.arguments, filter), [result, filter]);
+  const textSearch = filter.textSearch.trim();
+  const showOriginalResponses = result.config?.enable_original_comments === true;
 
   const clustersAtLevel = useMemo(
     () => result.clusters.filter((c) => c.level === (tab === "density" ? deepestLevel : scatterLevel)),
@@ -90,7 +93,12 @@ export function ReportViewer({ result, title, actions }: Props) {
         <button type="button" aria-pressed={tab === "treemap"} onClick={() => setTab("treemap")}>
           ツリーマップ
         </button>
-        <button type="button" aria-pressed={tab === "hierarchy"} onClick={() => setTab("hierarchy")}>
+        <button
+          type="button"
+          ref={hierarchyTabRef}
+          aria-pressed={tab === "hierarchy"}
+          onClick={() => setTab("hierarchy")}
+        >
           階層リスト
         </button>
         {tab === "scatter" && levels.length > 1 && (
@@ -134,6 +142,18 @@ export function ReportViewer({ result, title, actions }: Props) {
       {filteredIds && (
         <p className="note">
           フィルタ適用中: {filteredIds.size.toLocaleString()} / {result.arguments.length.toLocaleString()} 件が該当
+          {textSearch && filteredIds.size > 0 && tab !== "hierarchy" && (
+            <button
+              className="search-result-link"
+              type="button"
+              onClick={() => {
+                setTab("hierarchy");
+                hierarchyTabRef.current?.focus();
+              }}
+            >
+              検索結果をリストで見る
+            </button>
+          )}
         </p>
       )}
 
@@ -194,6 +214,8 @@ export function ReportViewer({ result, title, actions }: Props) {
             clusterList={result.clusters}
             argumentList={result.arguments}
             filteredArgumentIds={filteredIds ?? undefined}
+            textSearch={textSearch}
+            comments={showOriginalResponses ? result.comments : undefined}
           />
         )}
 

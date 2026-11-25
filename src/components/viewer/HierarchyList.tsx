@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import type { Argument, Cluster } from "../../types/result";
+import { readCommentIds } from "../../lib/opinionSources";
+import type { Argument, Cluster, Comments } from "../../types/result";
 
 // 本家 HierarchyListChart 相当: クラスタ階層を入れ子リストで表示する。
 
@@ -7,9 +8,35 @@ type Props = {
   clusterList: Cluster[];
   argumentList: Argument[];
   filteredArgumentIds?: Set<string>;
+  textSearch: string;
+  comments?: Comments;
 };
 
-export function HierarchyList({ clusterList, argumentList, filteredArgumentIds }: Props) {
+function OriginalResponses({ argument, comments }: { argument: Argument; comments: Comments }) {
+  let ids: string[];
+  try {
+    ids = readCommentIds(argument);
+  } catch {
+    // 旧形式の保存データに不正な出典IDがあっても、その意見は引き続き表示する。
+    return null;
+  }
+  const responses = ids.flatMap((id) => {
+    const body = Object.hasOwn(comments, id) ? comments[id]?.comment : undefined;
+    return typeof body === "string" && body.trim() ? [{ id, body }] : [];
+  });
+  if (responses.length === 0) return null;
+
+  return (
+    <details className="original-responses">
+      <summary>元の回答を見る{responses.length > 1 && `（${responses.length}件）`}</summary>
+      {responses.map(({ id, body }) => (
+        <p key={id}>{body}</p>
+      ))}
+    </details>
+  );
+}
+
+export function HierarchyList({ clusterList, argumentList, filteredArgumentIds, textSearch, comments }: Props) {
   const childrenByParent = useMemo(() => {
     const map = new Map<string, Cluster[]>();
     for (const cluster of clusterList) {
@@ -53,7 +80,7 @@ export function HierarchyList({ clusterList, argumentList, filteredArgumentIds }
     const children = childrenByParent.get(cluster.id) ?? [];
     const args = children.length === 0 ? (argsByCluster.get(cluster.id) ?? []) : [];
     return (
-      <details key={cluster.id} className="hierarchy-node" open={cluster.level <= 1}>
+      <details key={cluster.id} className="hierarchy-node" open={cluster.level <= 1 || Boolean(textSearch)}>
         <summary>
           <b>{cluster.label}</b>{" "}
           <span className="note">
@@ -67,7 +94,10 @@ export function HierarchyList({ clusterList, argumentList, filteredArgumentIds }
           {args.length > 0 && (
             <ul className="argument-list">
               {args.map((arg) => (
-                <li key={arg.arg_id}>{arg.argument}</li>
+                <li key={arg.arg_id}>
+                  {arg.argument}
+                  {comments && <OriginalResponses argument={arg} comments={comments} />}
+                </li>
               ))}
             </ul>
           )}
@@ -77,5 +107,9 @@ export function HierarchyList({ clusterList, argumentList, filteredArgumentIds }
   };
 
   const roots = childrenByParent.get("0") ?? [];
-  return <div className="hierarchy-list">{roots.map(renderCluster)}</div>;
+  return (
+    <div className="hierarchy-list" key={textSearch}>
+      {roots.map(renderCluster)}
+    </div>
+  );
 }

@@ -519,7 +519,7 @@ table.preview-table {
 }
 
 /* 階層リスト */
-.hierarchy-list details {
+.hierarchy-list .hierarchy-node {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--card-bg);
@@ -534,6 +534,23 @@ table.preview-table {
 }
 .hierarchy-takeaway {
   margin: 4px 0 0 20px;
+}
+.search-result-link {
+  margin-inline-start: 8px;
+}
+.original-responses {
+  margin-block: 4px 8px;
+  font-size: 0.9rem;
+}
+.original-responses summary {
+  color: var(--primary);
+}
+.original-responses p {
+  margin: 6px 0;
+  padding-inline-start: 12px;
+  border-inline-start: 2px solid var(--border);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .app-footer {
