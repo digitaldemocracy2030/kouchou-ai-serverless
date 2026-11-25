@@ -4,14 +4,14 @@ import { exportResultJson, parsePreprocessed, parseResultJson } from "../lib/exp
 import { embeddingCacheKey, extractionCacheKey } from "../lib/pipeline/cacheKeys";
 import { canRecluster, ensureInteractiveProject } from "../lib/reportProject";
 import { navigate } from "../lib/router";
-import { importSampleReport } from "../lib/sampleReport";
+import { SAMPLE_REPORT_ID } from "../lib/sampleReport";
 import { dexieStepStore } from "../lib/storage/checkpoints";
 import { db, deleteProjectData, deleteReportWithImage, requestPersistentStorage } from "../lib/storage/db";
 import { PROJECT_KIND } from "../stance-spectrum/storageKeys";
 import { useSettings } from "../store/settings";
 import type { Project } from "../types/project";
-import { estimateActualCostUsd, resolveEndpoint } from "../types/settings";
-import { SetupBanner } from "./SetupBanner";
+import { estimateActualCostUsd, needsInitialAnalysisSetup, resolveEndpoint } from "../types/settings";
+import { HomeGuide } from "./HomeGuide";
 
 // ホーム / レポート一覧(DESIGN §7-1)。
 
@@ -38,6 +38,11 @@ export function HomePage() {
   }, [projects]);
   const importRef = useRef<HTMLInputElement>(null);
   const { settings } = useSettings();
+  const unfinishedProjects = projects?.filter((p) => p.status !== "done" && p.kind !== PROJECT_KIND) ?? [];
+  const hasOwnWork =
+    unfinishedProjects.length > 0 || reports?.some((report) => report.id !== SAMPLE_REPORT_ID) === true;
+  const hasSavedWork = reports && projects ? reports.length > 0 || projects.length > 0 : undefined;
+  const needsSetup = needsInitialAnalysisSetup(settings);
 
   // Result JSON と前処理データ(.preprocessed.json)の両方を受け付ける
   const importJson = async (file: File) => {
@@ -97,30 +102,27 @@ export function HomePage() {
     }
   };
 
-  // 同梱サンプルレポート(実データで生成した本家互換 JSON)を開く
-  const openSample = async () => {
-    try {
-      await importSampleReport();
-      navigate("/report/sample");
-    } catch (e) {
-      alert(`サンプルの読み込みに失敗しました: ${e instanceof Error ? e.message : String(e)}`);
-    }
-  };
+  const sampleLink = (
+    <a className={hasOwnWork ? "action-link" : "action-link primary"} href={`#/report/${SAMPLE_REPORT_ID}`}>
+      サンプルを見る
+    </a>
+  );
 
   return (
-    <div>
-      <div className="row" style={{ justifyContent: "space-between" }}>
+    <main>
+      <header className="home-header">
         <h1>レポート一覧</h1>
+        {hasSavedWork !== undefined && !hasOwnWork && <p>初めて使う方は、設定なしで見られるサンプルから試せます。</p>}
         <div className="row">
-          <button type="button" className="primary" onClick={() => navigate("/new")}>
-            + 新規レポート作成
-          </button>
+          {!hasOwnWork && sampleLink}
+          <a className={hasOwnWork ? "action-link primary" : "action-link"} href={needsSetup ? "#/setup" : "#/new"}>
+            新規レポート作成
+          </a>
+          {hasOwnWork && sampleLink}
           <button type="button" onClick={() => importRef.current?.click()}>
             JSON インポート
           </button>
-          <button type="button" onClick={openSample} title="同梱のサンプルレポート(2,000件の仮想アンケート)を開く">
-            サンプルを見る
-          </button>
+          <HomeGuide hasSavedWork={hasSavedWork} needsSetup={needsSetup} />
           <input
             ref={importRef}
             type="file"
@@ -133,56 +135,49 @@ export function HomePage() {
             }}
           />
         </div>
-      </div>
-      <SetupBanner />
-      <p className="note">
-        すべての処理はブラウザ内で完結します。データは LLM プロバイダ以外へ送信されません。 レポートはこのブラウザの
-        IndexedDB に保存されます — 大事なレポートは必ず JSON エクスポートで手元に保存してください。
-      </p>
+      </header>
 
-      {projects && projects.filter((p) => p.status !== "done" && p.kind !== PROJECT_KIND).length > 0 && (
+      {unfinishedProjects.length > 0 && (
         <>
           <h2>処理中のプロジェクト</h2>
           <div className="report-grid">
-            {projects
-              .filter((p) => p.status !== "done" && p.kind !== PROJECT_KIND)
-              .map((project) => (
-                <div key={project.id} className="card">
-                  <h3>{project.title}</h3>
-                  <p className="note">
-                    {STATUS_LABEL[project.status]}
-                    {project.currentStep ? ` (${project.currentStep})` : ""} / {project.comments.length} コメント
-                  </p>
-                  {project.errorMessage && <div className="error-box">{project.errorMessage}</div>}
-                  <div className="row">
-                    <button type="button" className="primary" onClick={() => navigate(`/run/${project.id}`)}>
-                      {project.status === "created" ? "実行" : "再開 / 詳細"}
+            {unfinishedProjects.map((project) => (
+              <div key={project.id} className="card">
+                <h3>{project.title}</h3>
+                <p className="note">
+                  {STATUS_LABEL[project.status]}
+                  {project.currentStep ? ` (${project.currentStep})` : ""} / {project.comments.length} コメント
+                </p>
+                {project.errorMessage && <div className="error-box">{project.errorMessage}</div>}
+                <div className="row">
+                  <button type="button" className="primary" onClick={() => navigate(`/run/${project.id}`)}>
+                    {project.status === "created" ? "実行" : "再開 / 詳細"}
+                  </button>
+                  {embeddedIds?.has(project.id) && (
+                    <button type="button" onClick={() => navigate(`/interactive/${project.id}`)}>
+                      クラスタリングを再実行
                     </button>
-                    {embeddedIds?.has(project.id) && (
-                      <button type="button" onClick={() => navigate(`/interactive/${project.id}`)}>
-                        クラスタリングを再実行
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      className="danger"
-                      onClick={async () => {
-                        if (confirm(`「${project.title}」を削除しますか?(中間データも消えます)`)) {
-                          await deleteProjectData(project.id);
-                        }
-                      }}
-                    >
-                      削除
-                    </button>
-                  </div>
+                  )}
+                  <button
+                    type="button"
+                    className="danger"
+                    onClick={async () => {
+                      if (confirm(`「${project.title}」を削除しますか?(中間データも消えます)`)) {
+                        await deleteProjectData(project.id);
+                      }
+                    }}
+                  >
+                    削除
+                  </button>
                 </div>
-              ))}
+              </div>
+            ))}
           </div>
         </>
       )}
 
       <h2>完成したレポート</h2>
-      {(!reports || reports.length === 0) && <p className="note">まだレポートがありません。</p>}
+      {reports?.length === 0 && <p className="note">まだレポートがありません。</p>}
       <div className="report-grid">
         {reports?.map((report) => (
           <div key={report.id} className="card">
@@ -246,6 +241,9 @@ export function HomePage() {
           </div>
         ))}
       </div>
-    </div>
+      {reports && reports.length > 0 && (
+        <p className="note">レポートはこのブラウザに保存されます。手元に残すにはJSONを書き出してください。</p>
+      )}
+    </main>
   );
 }

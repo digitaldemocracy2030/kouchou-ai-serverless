@@ -2,14 +2,17 @@
  * Playwright によるブラウザ実機スモークテスト(開発検証用。CI では実行しない)。
  *   npx vite-node scripts/browser-smoke.ts
  * 前提: pnpm dev が起動していること(PORT 環境変数、既定 5174)、.env に OPENAI_API_KEY。
+ * 初回設定だけの確認: node scripts/browser-smoke.ts --setup-only (模擬API、.env不要)
  * 検証項目:
  *  1. ホーム表示
  *  2. 本家 example-hierarchical-polis JSON のインポート表示(M7 受け入れ基準)
  *  3. 設定画面でプロバイダ登録 → スロット選択 → 疎通確認
  *  4. ウィザードで CSV 取込 → 実行 → レポート表示(実 API・30件)
  */
+import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { chromium } from "playwright";
+import { chromium, type Page } from "playwright";
+import { FIRST_ANALYSIS_PRESETS } from "../src/types/settings.ts";
 
 const BASE = `http://localhost:${process.env.PORT ?? 5174}`;
 const EXAMPLE_JSON =
@@ -20,8 +23,156 @@ function env(name: string): string {
   return match?.[1]?.trim() ?? "";
 }
 
+async function checkFirstAnalysisSetup(page: Page) {
+  const openAi = FIRST_ANALYSIS_PRESETS.find((preset) => preset.id === "openai");
+  assert.ok(openAi);
+  const models = new Set<string>();
+  await page.route(`${openAi.baseUrl}/**`, (route) => {
+    const request = route.request();
+    const embedding = new URL(request.url()).pathname.endsWith("/embeddings");
+    const accepted = request.headers().authorization === "Bearer sk-test-accepted";
+    const rejected = embedding && !accepted;
+    if (accepted) models.add(request.postDataJSON().model);
+    return route.fulfill({
+      status: rejected ? 401 : 200,
+      headers: { "access-control-allow-origin": "*" },
+      json: rejected
+        ? { error: { message: "Invalid API key" } }
+        : embedding
+          ? { data: [{ index: 0, embedding: [0.25, 0.5] }] }
+          : { choices: [{ message: { content: "OK" } }] },
+    });
+  });
+
+  await page.goto(`${BASE}/#/`);
+  const guide = page.getByRole("dialog", { name: "広聴AI サーバレス版の使い方" });
+  await guide.getByRole("link", { name: "自分のCSVを分析する" }).click();
+  await page.getByRole("heading", { name: "はじめての分析設定" }).waitFor();
+  assert.equal(
+    await page.getByRole("link", { name: "接続先やモデルを自分で指定する" }).getAttribute("href"),
+    "#/settings",
+  );
+  assert.equal(
+    await page.getByRole("link", { name: "設定なしでサンプルを見る" }).getAttribute("href"),
+    "#/report/sample",
+  );
+
+  const keyInput = page.getByLabel("OpenAIのAPIキー", { exact: true });
+  const provider = page.getByLabel("分析に使うAI");
+  assert.equal(await provider.inputValue(), "");
+  assert.equal(await page.locator('input[type="password"]').count(), 0);
+  await provider.selectOption("openai");
+  const confirm = page.getByRole("button", { name: "確認してCSV選択へ" });
+  assert.ok(await confirm.isDisabled());
+  await keyInput.fill("sk-test-rejected");
+  await confirm.click();
+  await page.getByText("OpenAIに接続できませんでした。APIキーと利用権限を確認してください。").waitFor();
+  assert.ok(
+    await page.evaluate(() => !localStorage.getItem("kouchou-ai-settings")?.includes("sk-test-rejected")),
+    "片方の接続確認に失敗したキーを保存しない",
+  );
+  await keyInput.fill("sk-test-accepted");
+  await confirm.click();
+  await page.waitForURL("**/#/new");
+  await page.getByRole("heading", { name: /CSV を選択/ }).waitFor();
+  assert.deepEqual(models, new Set([openAi.chatModel, openAi.embeddingModel]));
+  assert.ok(!(await page.getByRole("link", { name: "はじめての分析設定へ" }).isVisible()));
+
+  await page.reload();
+  await page.getByRole("heading", { name: /CSV を選択/ }).waitFor();
+  assert.equal(await page.getByRole("link", { name: "新規作成", exact: true }).getAttribute("href"), "#/new");
+  assert.ok(!(await page.getByRole("link", { name: "はじめての分析設定へ" }).isVisible()));
+  assert.ok(!(await page.getByText("AIの接続確認がまだです").isVisible()));
+  console.log("初回設定 OpenAI と失敗からの再試行 OK");
+}
+
+async function mockLocalEmbedding(page: Page) {
+  await page.route("**/embedding.worker.ts?*", (route) =>
+    route.fulfill({
+      contentType: "text/javascript",
+      body: `self.onmessage = ({ data }) => self.postMessage({
+        id: data.id, type: "done", dim: 2, flat: new Float32Array([0.25, 0.5])
+      });`,
+    }),
+  );
+}
+
+async function checkAnthropicSetup(page: Page) {
+  const anthropic = FIRST_ANALYSIS_PRESETS.find((preset) => preset.id === "anthropic");
+  assert.ok(anthropic);
+  const requests: string[] = [];
+  await mockLocalEmbedding(page);
+  await page.route(`${anthropic.baseUrl}/**`, (route) => {
+    const request = route.request();
+    requests.push(new URL(request.url()).pathname);
+    return route.fulfill({
+      headers: { "access-control-allow-origin": "*" },
+      json: { choices: [{ message: { content: "OK" } }] },
+    });
+  });
+
+  await page.goto(`${BASE}/#/setup`);
+  const provider = page.getByLabel("分析に使うAI");
+  await provider.selectOption("openai");
+  await page.getByLabel("OpenAIのAPIキー").fill("sk-test-previous-provider");
+  await provider.selectOption("anthropic");
+  const key = page.getByLabel("Anthropic (Claude)のAPIキー");
+  assert.equal(await key.inputValue(), "");
+  await key.fill("sk-test-anthropic");
+  await page.getByText(/意見の類似度はブラウザ内で計算/).waitFor();
+  await page.getByRole("button", { name: "確認してCSV選択へ" }).click();
+  await page.waitForURL("**/#/new");
+  assert.deepEqual(requests, ["/v1/chat/completions"]);
+  const settings = await readAnalysisSlots(page);
+  assert.deepEqual(settings, { chat: "anthropic", embedding: "local-embedding" });
+  console.log("初回設定 Claude とブラウザ内の埋め込み OK");
+}
+
+async function checkBrowserOnlySetup(page: Page) {
+  await mockLocalEmbedding(page);
+  await page.addInitScript(() => {
+    Object.defineProperty(globalThis, "LanguageModel", {
+      value: {
+        availability: async () => "available",
+        create: async () => ({
+          prompt: async (_text: string, options?: { responseConstraint?: object }) =>
+            options?.responseConstraint ? '{"sum":2}' : "2",
+          destroy: () => {},
+        }),
+      },
+    });
+  });
+  await page.goto(`${BASE}/#/setup`);
+  await page.getByLabel("分析に使うAI").selectOption("gemini-nano");
+  assert.equal(await page.locator('input[type="password"]').count(), 0);
+  await page.getByRole("button", { name: "確認してCSV選択へ" }).click();
+  await page.waitForURL("**/#/new");
+  const settings = await readAnalysisSlots(page);
+  assert.deepEqual(settings, { chat: "gemini-nano", embedding: "local-embedding" });
+  console.log("初回設定 ブラウザ内だけで分析する場合 OK");
+}
+
+function readAnalysisSlots(page: Page) {
+  return page.evaluate(() => {
+    const saved = JSON.parse(localStorage.getItem("kouchou-ai-settings") ?? "{}").state.settings;
+    return { chat: saved.chatSlot.provider, embedding: saved.embeddingSlot.provider };
+  });
+}
+
 async function main() {
   const browser = await chromium.launch();
+  if (process.argv.includes("--setup-only")) {
+    try {
+      await Promise.all([
+        checkFirstAnalysisSetup(await browser.newPage()),
+        checkAnthropicSetup(await browser.newPage()),
+        checkBrowserOnlySetup(await browser.newPage()),
+      ]);
+    } finally {
+      await browser.close();
+    }
+    return;
+  }
   const page = await browser.newPage();
   const errors: string[] = [];
   const pageErrors: string[] = [];
@@ -38,6 +189,20 @@ async function main() {
   // 1. ホーム
   await page.goto(`${BASE}/#/`);
   await page.waitForLoadState("networkidle");
+  const guide = page.getByRole("dialog", { name: "広聴AI サーバレス版の使い方" });
+  await guide.waitFor({ state: "visible" });
+  await page.keyboard.press("Escape");
+  await guide.waitFor({ state: "hidden" });
+  const openGuide = page.getByRole("button", { name: "使い方", exact: true });
+  check(
+    "初回ガイドを閉じると「使い方」にフォーカスが戻る",
+    await openGuide.evaluate((el) => el === document.activeElement),
+  );
+  await page.reload();
+  await page.waitForLoadState("networkidle");
+  check("初回ガイドの表示を記憶", !(await guide.isVisible()));
+  await openGuide.click();
+  await guide.getByRole("button", { name: "閉じる" }).click();
   check(
     "ホーム表示",
     await page
@@ -138,6 +303,7 @@ async function main() {
   check("リロード後もレポート表示(IndexedDB)", (await page.locator(".cluster-card").count()) > 0);
 
   // 前処理データのエクスポート → インポート → 後処理のみ再実行(LLM抽出・埋め込みはスキップ)
+  await page.getByText("書き出し・再クラスタリング", { exact: true }).click();
   await page.getByRole("button", { name: /クラスタリングを再実行/ }).click();
   await page.getByRole("button", { name: "前処理データをエクスポート" }).waitFor({ timeout: 15000 });
   const preDownloadPromise = page.waitForEvent("download", { timeout: 30000 });

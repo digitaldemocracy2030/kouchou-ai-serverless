@@ -56,6 +56,10 @@ export const DEFAULT_SETTINGS: Settings = {
   verification: {},
 };
 
+export function needsInitialAnalysisSetup(settings: Settings): boolean {
+  return settings.chatSlot.provider === null && settings.embeddingSlot.provider === null;
+}
+
 function selectionFor(settings: Settings, slot: SlotName): SlotSelection {
   if (slot === "chat") return settings.chatSlot;
   if (slot === "embedding") return settings.embeddingSlot;
@@ -442,4 +446,24 @@ export const PRESETS: Preset[] = [
  */
 export function supportsImageGeneration(preset: Preset): boolean {
   return preset.imageModel !== undefined;
+}
+
+// URL と既定モデルがあるプロバイダだけを案内し、接続先・モデル名の入力を省く。
+export const FIRST_ANALYSIS_PRESETS = PRESETS.filter((preset) => preset.baseUrl && preset.chatModel);
+
+export function withInitialAnalysisSettings(settings: Settings, preset: Preset, apiKey: string): Settings {
+  const embeddingProvider = preset.embeddingModel ? preset.id : "local-embedding";
+  const embeddingPreset = PRESETS.find((candidate) => candidate.id === embeddingProvider);
+  return {
+    ...settings,
+    providers:
+      preset.id === "gemini-nano"
+        ? settings.providers
+        : { ...settings.providers, [preset.id]: { baseUrl: preset.baseUrl, apiKey } },
+    chatSlot: { provider: preset.id, model: preset.chatModel },
+    embeddingSlot: {
+      provider: embeddingProvider,
+      model: defaultModelFor(embeddingPreset, "embedding"),
+    },
+  };
 }

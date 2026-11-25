@@ -216,57 +216,64 @@ export function ViewerPage({ reportId }: { reportId: string }) {
 
   return (
     <div>
-      {Object.keys(report.result.comments ?? {}).length > 0 && (
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            checked={exportResult.config.enable_original_comments}
-            onChange={(e) => setIncludeOriginalComments(e.target.checked)}
-          />
-          書き出す JSON・単一 HTML に元コメント本文を含める（再配布できる場合のみ）
-        </label>
-      )}
-      <div className="row" style={{ justifyContent: "flex-end" }}>
-        {report.tokenUsage && (
-          <span className="note">
-            生成コスト: 入力 {report.tokenUsage.input.toLocaleString()} / 出力{" "}
-            {report.tokenUsage.output.toLocaleString()} トークン
-            {cost !== null ? ` ≈ $${cost.toFixed(3)}` : ""}({report.chatModel})
-          </span>
-        )}
-        <button type="button" onClick={() => exportResultJson(exportResult)}>
-          JSON エクスポート
-        </button>
-        <button type="button" onClick={exportHtml} disabled={exporting}>
-          {exporting ? "生成中..." : "単一 HTML レポート"}
-        </button>
-        <button type="button" onClick={() => exportArgumentsCsv(report.result)}>
-          意見 CSV
-        </button>
-        <button type="button" onClick={() => exportClustersCsv(report.result)}>
-          クラスタ CSV
-        </button>
-        <button type="button" onClick={exportPowerPoint} disabled={exportingPptx}>
-          {exportingPptx ? "生成中..." : "PowerPoint"}
-        </button>
-        {reclusterable && (
-          <button
-            type="button"
-            onClick={openRecluster}
-            disabled={openingRecluster}
-            title={
-              project
-                ? "ベクトル化済みデータでクラスタ数を対話調整して作り直す"
-                : "このレポートの意見と座標からプロジェクトを復元し、クラスタ数を対話調整して作り直す"
-            }
-          >
-            {openingRecluster ? "準備中..." : "クラスタリングを再実行"}
-          </button>
-        )}
-      </div>
-      {exportError && <div className="error-box">{exportError}</div>}
-
-      <ReportViewer result={report.result} title={report.title} />
+      <ReportViewer
+        result={report.result}
+        title={report.title}
+        actions={
+          <details className="viewer-actions">
+            <summary>{reclusterable ? "書き出し・再クラスタリング" : "書き出し"}</summary>
+            {Object.keys(report.result.comments ?? {}).length > 0 && (
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={exportResult.config.enable_original_comments}
+                  onChange={(e) => setIncludeOriginalComments(e.target.checked)}
+                />
+                書き出す JSON・単一 HTML に元コメント本文を含める（再配布できる場合のみ）
+              </label>
+            )}
+            <div className="row">
+              {report.tokenUsage && (
+                <span className="note">
+                  生成コスト: 入力 {report.tokenUsage.input.toLocaleString()} / 出力{" "}
+                  {report.tokenUsage.output.toLocaleString()} トークン
+                  {cost !== null ? ` ≈ $${cost.toFixed(3)}` : ""}({report.chatModel})
+                </span>
+              )}
+              <button type="button" onClick={() => exportResultJson(exportResult)}>
+                JSON エクスポート
+              </button>
+              <button type="button" onClick={exportHtml} disabled={exporting}>
+                {exporting ? "生成中..." : "単一 HTML レポート"}
+              </button>
+              <button type="button" onClick={() => exportArgumentsCsv(report.result)}>
+                意見 CSV
+              </button>
+              <button type="button" onClick={() => exportClustersCsv(report.result)}>
+                クラスタ CSV
+              </button>
+              <button type="button" onClick={exportPowerPoint} disabled={exportingPptx}>
+                {exportingPptx ? "生成中..." : "PowerPoint"}
+              </button>
+              {reclusterable && (
+                <button
+                  type="button"
+                  onClick={openRecluster}
+                  disabled={openingRecluster}
+                  title={
+                    project
+                      ? "ベクトル化済みデータでクラスタ数を対話調整して作り直す"
+                      : "このレポートの意見と座標からプロジェクトを復元し、クラスタ数を対話調整して作り直す"
+                  }
+                >
+                  {openingRecluster ? "準備中..." : "クラスタリングを再実行"}
+                </button>
+              )}
+            </div>
+            {exportError && <div className="error-box">{exportError}</div>}
+          </details>
+        }
+      />
 
       {/* ポンチ絵セクション: レポートの争点を一枚絵にする。PowerPoint の先頭スライドにも入る。
           チャートと解説を先に見せたいので、ビューア(散布図)の下に置く */}

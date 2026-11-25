@@ -121,7 +121,7 @@ export function StanceSpectrumNewPage() {
         CSV を取り込んで、そのまま賛否スペクトラム分析に入ります。通常版の実行は不要です。意見抽出・
         stance/topics/reasons の付与・ベクトル化は「開く」の後、賛否スペクトラム分析の画面で一括実行されます。
       </p>
-      <SetupBanner context="create" />
+      <SetupBanner />
       {error && <div className="error-box">{error}</div>}
 
       <div className="card">
