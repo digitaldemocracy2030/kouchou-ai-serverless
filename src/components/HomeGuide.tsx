@@ -58,7 +58,7 @@ export function HomeGuide({ hasSavedWork, needsSetup }: { hasSavedWork: boolean 
               自分のCSVを分析する
             </a>
             <p id="guide-create-note">
-              {needsSetup ? "OpenAIのAPIキーから、初回の分析設定を始められます。" : "手元のCSVからレポートを作れます。"}
+              {needsSetup ? "使うAIを選び、分析に必要な項目だけを設定します。" : "手元のCSVからレポートを作れます。"}
             </p>
           </div>
         </div>

@@ -255,49 +255,47 @@ export type ModelSuggestion = {
   price?: string;
 };
 
-// 既知モデルリストは「安い順」に並べる(旧世代モデルも互換性のため残す)。
-// 意見分割・ラベリング・要約は比較的軽いタスクなので、安価な小型モデルで十分。
-export const OPENAI_PRESET = {
-  id: "openai",
-  statusUrl: "https://status.openai.com",
-  label: "OpenAI",
-  baseUrl: "https://api.openai.com/v1",
-  chatModel: "gpt-5.4-nano",
-  embeddingModel: "text-embedding-3-small",
-  imageModel: "gpt-image-1.5",
-  corsNote: "そのまま動作します。意見分割・要約は nano / mini 級で十分です。",
-  // dall-e-3 は API から廃止済み(2026-07 実測: The model 'dall-e-3' does not exist)。
-  // 現行の画像モデルは gpt-image 系のみ。価格は 2026-07 時点の公表値。
-  // gpt-image-2 のみ 16 の倍数の任意サイズ(= 真の 4:3)に対応、他は固定サイズ。
-  knownImageModels: [
-    { id: "gpt-image-1-mini", price: "$0.005 - $0.052 / 枚(サイズと品質による)" },
-    { id: "gpt-image-1.5", price: "$0.009 - $0.20 / 枚(サイズと品質による)" },
-    { id: "gpt-image-1", price: "$0.011 - $0.167 / 枚(2026-10 廃止予定)" },
-    { id: "gpt-image-2", price: "$0.006 - $0.21 / 枚(サイズと品質による)" },
-  ],
-  knownChatModels: [
-    { id: "gpt-5-nano", price: "$0.05 / $0.40" },
-    { id: "gpt-4o-mini", price: "$0.15 / $0.60" },
-    { id: "gpt-5.4-nano", price: "$0.20 / $1.25" },
-    { id: "gpt-5-mini", price: "$0.25 / $2.00" },
-    { id: "gpt-5.4-mini", price: "$0.75 / $4.50" },
-    { id: "gpt-5.6-luna", price: "$1.00 / $6.00" },
-    { id: "gpt-5.4", price: "$2.50 / $15.00" },
-    { id: "gpt-5.6-terra", price: "$2.50 / $15.00" },
-    { id: "gpt-5.6-sol", price: "$5.00 / $30.00" },
-  ],
-  knownEmbeddingModels: [
-    { id: "text-embedding-3-small", price: "$0.02" },
-    { id: "text-embedding-3-large", price: "$0.13" },
-  ],
-  tierOptions: [
-    { value: "", label: "標準(即時処理)" },
-    { value: "flex", label: "Flex — Batch 価格(約50%割引)・低速。混雑時は自動リトライ" },
-  ],
-} satisfies Preset;
-
 export const PRESETS: Preset[] = [
-  OPENAI_PRESET,
+  // 既知モデルリストは「安い順」に並べる(旧世代モデルも互換性のため残す)。
+  // 意見分割・ラベリング・要約は比較的軽いタスクなので、安価な小型モデルで十分。
+  {
+    id: "openai",
+    statusUrl: "https://status.openai.com",
+    label: "OpenAI",
+    baseUrl: "https://api.openai.com/v1",
+    chatModel: "gpt-5.4-nano",
+    embeddingModel: "text-embedding-3-small",
+    imageModel: "gpt-image-1.5",
+    corsNote: "そのまま動作します。意見分割・要約は nano / mini 級で十分です。",
+    // dall-e-3 は API から廃止済み(2026-07 実測: The model 'dall-e-3' does not exist)。
+    // 現行の画像モデルは gpt-image 系のみ。価格は 2026-07 時点の公表値。
+    // gpt-image-2 のみ 16 の倍数の任意サイズ(= 真の 4:3)に対応、他は固定サイズ。
+    knownImageModels: [
+      { id: "gpt-image-1-mini", price: "$0.005 - $0.052 / 枚(サイズと品質による)" },
+      { id: "gpt-image-1.5", price: "$0.009 - $0.20 / 枚(サイズと品質による)" },
+      { id: "gpt-image-1", price: "$0.011 - $0.167 / 枚(2026-10 廃止予定)" },
+      { id: "gpt-image-2", price: "$0.006 - $0.21 / 枚(サイズと品質による)" },
+    ],
+    knownChatModels: [
+      { id: "gpt-5-nano", price: "$0.05 / $0.40" },
+      { id: "gpt-4o-mini", price: "$0.15 / $0.60" },
+      { id: "gpt-5.4-nano", price: "$0.20 / $1.25" },
+      { id: "gpt-5-mini", price: "$0.25 / $2.00" },
+      { id: "gpt-5.4-mini", price: "$0.75 / $4.50" },
+      { id: "gpt-5.6-luna", price: "$1.00 / $6.00" },
+      { id: "gpt-5.4", price: "$2.50 / $15.00" },
+      { id: "gpt-5.6-terra", price: "$2.50 / $15.00" },
+      { id: "gpt-5.6-sol", price: "$5.00 / $30.00" },
+    ],
+    knownEmbeddingModels: [
+      { id: "text-embedding-3-small", price: "$0.02" },
+      { id: "text-embedding-3-large", price: "$0.13" },
+    ],
+    tierOptions: [
+      { value: "", label: "標準(即時処理)" },
+      { value: "flex", label: "Flex — Batch 価格(約50%割引)・低速。混雑時は自動リトライ" },
+    ],
+  },
   {
     id: "anthropic",
     statusUrl: "https://status.anthropic.com",
@@ -448,4 +446,24 @@ export const PRESETS: Preset[] = [
  */
 export function supportsImageGeneration(preset: Preset): boolean {
   return preset.imageModel !== undefined;
+}
+
+// URL と既定モデルがあるプロバイダだけを案内し、接続先・モデル名の入力を省く。
+export const FIRST_ANALYSIS_PRESETS = PRESETS.filter((preset) => preset.baseUrl && preset.chatModel);
+
+export function withInitialAnalysisSettings(settings: Settings, preset: Preset, apiKey: string): Settings {
+  const embeddingProvider = preset.embeddingModel ? preset.id : "local-embedding";
+  const embeddingPreset = PRESETS.find((candidate) => candidate.id === embeddingProvider);
+  return {
+    ...settings,
+    providers:
+      preset.id === "gemini-nano"
+        ? settings.providers
+        : { ...settings.providers, [preset.id]: { baseUrl: preset.baseUrl, apiKey } },
+    chatSlot: { provider: preset.id, model: preset.chatModel },
+    embeddingSlot: {
+      provider: embeddingProvider,
+      model: defaultModelFor(embeddingPreset, "embedding"),
+    },
+  };
 }

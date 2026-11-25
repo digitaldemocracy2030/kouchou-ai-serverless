@@ -4,13 +4,14 @@ import {
   DEFAULT_SETTINGS,
   endpointFingerprint,
   needsInitialAnalysisSetup,
-  OPENAI_PRESET,
+  type Preset,
   type PresetId,
   type ProviderConfig,
   resolveEndpoint,
   type Settings,
   type SlotName,
   type SlotSelection,
+  withInitialAnalysisSettings,
 } from "../types/settings";
 
 // 設定は localStorage に保存する(DESIGN §4.1)。
@@ -53,7 +54,7 @@ type SettingsStore = {
   setConcurrency: (n: number) => void;
   /** 疎通確認の成否を記録する(成功なら指紋つきで保存、失敗なら記録を消す) */
   setVerification: (slot: SlotName, fingerprint: string | null) => void;
-  saveInitialOpenAiSetup: (apiKey: string) => void;
+  saveInitialAnalysisSetup: (preset: Preset, apiKey: string) => void;
   clearAll: () => void;
 };
 
@@ -104,18 +105,10 @@ export const useSettings = create<SettingsStore>()(
           else delete verification[slot];
           return { settings: { ...state.settings, verification } };
         }),
-      saveInitialOpenAiSetup: (apiKey) =>
+      saveInitialAnalysisSetup: (preset, apiKey) =>
         set((state) => {
           if (!needsInitialAnalysisSetup(state.settings)) return state;
-          const settings: Settings = {
-            ...state.settings,
-            providers: {
-              ...state.settings.providers,
-              openai: { baseUrl: OPENAI_PRESET.baseUrl, apiKey },
-            },
-            chatSlot: { provider: "openai", model: OPENAI_PRESET.chatModel },
-            embeddingSlot: { provider: "openai", model: OPENAI_PRESET.embeddingModel },
-          };
+          const settings = withInitialAnalysisSettings(state.settings, preset, apiKey);
           const at = Date.now();
           return {
             settings: {

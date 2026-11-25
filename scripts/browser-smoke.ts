@@ -12,7 +12,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { chromium, type Page } from "playwright";
-import { OPENAI_PRESET } from "../src/types/settings.ts";
+import { FIRST_ANALYSIS_PRESETS } from "../src/types/settings.ts";
 
 const BASE = `http://localhost:${process.env.PORT ?? 5174}`;
 const EXAMPLE_JSON =
@@ -24,8 +24,10 @@ function env(name: string): string {
 }
 
 async function checkFirstAnalysisSetup(page: Page) {
+  const openAi = FIRST_ANALYSIS_PRESETS.find((preset) => preset.id === "openai");
+  assert.ok(openAi);
   const models = new Set<string>();
-  await page.route(`${OPENAI_PRESET.baseUrl}/**`, (route) => {
+  await page.route(`${openAi.baseUrl}/**`, (route) => {
     const request = route.request();
     const embedding = new URL(request.url()).pathname.endsWith("/embeddings");
     const accepted = request.headers().authorization === "Bearer sk-test-accepted";
@@ -46,14 +48,21 @@ async function checkFirstAnalysisSetup(page: Page) {
   const guide = page.getByRole("dialog", { name: "広聴AI サーバレス版の使い方" });
   await guide.getByRole("link", { name: "自分のCSVを分析する" }).click();
   await page.getByRole("heading", { name: "はじめての分析設定" }).waitFor();
-  assert.equal(await page.getByRole("link", { name: "別のAIを使う" }).getAttribute("href"), "#/settings");
+  assert.equal(
+    await page.getByRole("link", { name: "接続先やモデルを自分で指定する" }).getAttribute("href"),
+    "#/settings",
+  );
   assert.equal(
     await page.getByRole("link", { name: "設定なしでサンプルを見る" }).getAttribute("href"),
     "#/report/sample",
   );
 
   const keyInput = page.getByLabel("OpenAIのAPIキー", { exact: true });
-  const confirm = page.getByRole("button", { name: "接続を確認してCSV選択へ" });
+  const provider = page.getByLabel("分析に使うAI");
+  assert.equal(await provider.inputValue(), "");
+  assert.equal(await page.locator('input[type="password"]').count(), 0);
+  await provider.selectOption("openai");
+  const confirm = page.getByRole("button", { name: "確認してCSV選択へ" });
   assert.ok(await confirm.isDisabled());
   await keyInput.fill("sk-test-rejected");
   await confirm.click();
@@ -66,7 +75,7 @@ async function checkFirstAnalysisSetup(page: Page) {
   await confirm.click();
   await page.waitForURL("**/#/new");
   await page.getByRole("heading", { name: /CSV を選択/ }).waitFor();
-  assert.deepEqual(models, new Set([OPENAI_PRESET.chatModel, OPENAI_PRESET.embeddingModel]));
+  assert.deepEqual(models, new Set([openAi.chatModel, openAi.embeddingModel]));
   assert.ok(!(await page.getByRole("link", { name: "はじめての分析設定へ" }).isVisible()));
 
   await page.reload();
@@ -74,14 +83,91 @@ async function checkFirstAnalysisSetup(page: Page) {
   assert.equal(await page.getByRole("link", { name: "新規作成", exact: true }).getAttribute("href"), "#/new");
   assert.ok(!(await page.getByRole("link", { name: "はじめての分析設定へ" }).isVisible()));
   assert.ok(!(await page.getByText("AIの接続確認がまだです").isVisible()));
-  console.log("初回設定スモークテスト OK");
+  console.log("初回設定 OpenAI と失敗からの再試行 OK");
+}
+
+async function mockLocalEmbedding(page: Page) {
+  await page.route("**/embedding.worker.ts?*", (route) =>
+    route.fulfill({
+      contentType: "text/javascript",
+      body: `self.onmessage = ({ data }) => self.postMessage({
+        id: data.id, type: "done", dim: 2, flat: new Float32Array([0.25, 0.5])
+      });`,
+    }),
+  );
+}
+
+async function checkAnthropicSetup(page: Page) {
+  const anthropic = FIRST_ANALYSIS_PRESETS.find((preset) => preset.id === "anthropic");
+  assert.ok(anthropic);
+  const requests: string[] = [];
+  await mockLocalEmbedding(page);
+  await page.route(`${anthropic.baseUrl}/**`, (route) => {
+    const request = route.request();
+    requests.push(new URL(request.url()).pathname);
+    return route.fulfill({
+      headers: { "access-control-allow-origin": "*" },
+      json: { choices: [{ message: { content: "OK" } }] },
+    });
+  });
+
+  await page.goto(`${BASE}/#/setup`);
+  const provider = page.getByLabel("分析に使うAI");
+  await provider.selectOption("openai");
+  await page.getByLabel("OpenAIのAPIキー").fill("sk-test-previous-provider");
+  await provider.selectOption("anthropic");
+  const key = page.getByLabel("Anthropic (Claude)のAPIキー");
+  assert.equal(await key.inputValue(), "");
+  await key.fill("sk-test-anthropic");
+  await page.getByText(/意見の類似度はブラウザ内で計算/).waitFor();
+  await page.getByRole("button", { name: "確認してCSV選択へ" }).click();
+  await page.waitForURL("**/#/new");
+  assert.deepEqual(requests, ["/v1/chat/completions"]);
+  const settings = await readAnalysisSlots(page);
+  assert.deepEqual(settings, { chat: "anthropic", embedding: "local-embedding" });
+  console.log("初回設定 Claude とブラウザ内の埋め込み OK");
+}
+
+async function checkBrowserOnlySetup(page: Page) {
+  await mockLocalEmbedding(page);
+  await page.addInitScript(() => {
+    Object.defineProperty(globalThis, "LanguageModel", {
+      value: {
+        availability: async () => "available",
+        create: async () => ({
+          prompt: async (_text: string, options?: { responseConstraint?: object }) =>
+            options?.responseConstraint ? '{"sum":2}' : "2",
+          destroy: () => {},
+        }),
+      },
+    });
+  });
+  await page.goto(`${BASE}/#/setup`);
+  await page.getByLabel("分析に使うAI").selectOption("gemini-nano");
+  assert.equal(await page.locator('input[type="password"]').count(), 0);
+  await page.getByRole("button", { name: "確認してCSV選択へ" }).click();
+  await page.waitForURL("**/#/new");
+  const settings = await readAnalysisSlots(page);
+  assert.deepEqual(settings, { chat: "gemini-nano", embedding: "local-embedding" });
+  console.log("初回設定 ブラウザ内だけで分析する場合 OK");
+}
+
+function readAnalysisSlots(page: Page) {
+  return page.evaluate(() => {
+    const saved = JSON.parse(localStorage.getItem("kouchou-ai-settings") ?? "{}").state.settings;
+    return { chat: saved.chatSlot.provider, embedding: saved.embeddingSlot.provider };
+  });
 }
 
 async function main() {
   const browser = await chromium.launch();
   if (process.argv.includes("--setup-only")) {
     try {
-      await checkFirstAnalysisSetup(await browser.newPage());
+      await Promise.all([
+        checkFirstAnalysisSetup(await browser.newPage()),
+        checkAnthropicSetup(await browser.newPage()),
+        checkBrowserOnlySetup(await browser.newPage()),
+      ]);
     } finally {
       await browser.close();
     }

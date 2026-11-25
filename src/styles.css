@@ -247,7 +247,7 @@ button.home-guide-trigger:hover {
   max-width: 36rem;
 }
 
-.first-analysis-setup form > label {
+.first-analysis-setup form > label:first-child {
   margin-top: 0;
 }
 
