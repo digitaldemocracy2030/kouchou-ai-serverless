@@ -7,9 +7,9 @@ import { DB_NAME, db } from "./db";
 // 生の API だけで動くようにしてある(Dexie が開けない状況でも実行できる)。
 //
 // 【重要】IndexedDB も OPFS もオリジン単位で、パス単位ではない。
-// 本番の配信元は https://tokoroten.github.io/kouchou-ai-serverless/ で、
-// オリジン(https://tokoroten.github.io)は同じアカウントの他の GitHub Pages
-// プロジェクトと共有される。したがって「オリジンの全データを消す」は
+// 本番の配信元は https://digitaldemocracy2030.github.io/kouchou-ai-serverless/ で、
+// オリジン(https://digitaldemocracy2030.github.io)は同じ org の他の GitHub Pages
+// プロジェクト(広聴AI 本体のドキュメントなど)と共有される。したがって「オリジンの全データを消す」は
 // 無関係なアプリのデータまで巻き込む。既定は本アプリのデータのみとし、
 // オリジン全体の消去は呼び出し側が明示したときだけ行う。
 
