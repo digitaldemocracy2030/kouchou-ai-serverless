@@ -2,7 +2,7 @@
 // 出力レポートはこの Result とスキーマ互換を維持する(docs/DESIGN.md §5.2)。
 
 export type Result = {
-  schema_version?: 1;
+  schema_version?: 1 | 2;
   arguments: Argument[];
   clusters: Cluster[];
   comments: Comments;
@@ -20,6 +20,7 @@ export type Argument = {
   arg_id: string;
   argument: string;
   comment_id: number | string;
+  comment_ids?: string[];
   x: number;
   y: number;
   p: number;

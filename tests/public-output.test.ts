@@ -13,9 +13,9 @@ describe("公開用結果", () => {
     Object.assign(result.config, { enable_original_comments: flag });
     const before = JSON.stringify(result);
     const output = buildPublicResult(result);
-    expect(output.schema_version).toBe(1);
+    expect(output.schema_version).toBe(2);
     expect(output.comments).toEqual(flag === true ? result.comments : {});
-    expect(output.arguments).toEqual(result.arguments);
+    expect(output.arguments).toEqual(result.arguments.map((arg) => ({ ...arg, comment_id: String(arg.comment_id) })));
     expect(output.comment_num).toBe(result.comment_num);
     expect(JSON.stringify(result)).toBe(before);
   });
@@ -67,7 +67,7 @@ describe("公開用結果", () => {
     );
     await exportSingleHtml(result);
     expect(await blobs[1].text()).not.toContain("PRIVATE-ORIGINAL");
-    expect(await blobs[1].text()).toContain('"schema_version":1');
+    expect(await blobs[1].text()).toContain('"schema_version":2');
     expect(await blobs[1].text()).toContain(result.config.name);
   });
 });

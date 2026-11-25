@@ -1,5 +1,6 @@
 import type { CommentRow, ExtractionResult, LabellingResult, Project } from "../../../types/project";
 import type { Argument, Cluster, Result, ResultConfig } from "../../../types/result";
+import { commentSourceFields } from "../../opinionSources";
 import type { ClusterTable } from "../clusterTable";
 import { rowsInCluster, uniqueClusterIds } from "../clusterTable";
 
@@ -121,29 +122,30 @@ export function aggregation(input: AggregationInput): Result {
       ? savedCount
       : comments.length;
 
-  // arg-id -> comment-id(最初の出現を採用)
-  const commentIdByArgId = new Map<string, string>();
+  // 全出典を保持し、属性・旧形式の代表は最初の出典を使う。
+  const commentIdsByArgId = new Map<string, Set<string>>();
   for (const relation of extractionResult.relations) {
-    if (!commentIdByArgId.has(relation.argId)) {
-      commentIdByArgId.set(relation.argId, relation.commentId);
-    }
+    if (!relation.commentId) continue;
+    const ids = commentIdsByArgId.get(relation.argId) ?? new Set<string>();
+    ids.add(relation.commentId);
+    commentIdsByArgId.set(relation.argId, ids);
   }
   const commentById = new Map(comments.map((c) => [c.commentId, c]));
 
   // ---- arguments ----
   const argumentsList: Argument[] = table.argIds.map((argId, row) => {
     const clusterIds = ["0", ...table.levels.map((level) => table.idsByLevel[level - 1][row])];
-    const commentId = commentIdByArgId.get(argId) ?? "";
+    const sources = commentSourceFields(commentIdsByArgId.get(argId) ?? []);
     const argument: Argument = {
       arg_id: argId,
       argument: table.argumentTexts[row],
-      comment_id: commentId,
+      ...sources,
       x: table.x[row],
       y: table.y[row],
       p: 0,
       cluster_ids: clusterIds,
     };
-    const comment = commentById.get(commentId);
+    const comment = commentById.get(sources.comment_id);
     if (comment && project.attributeColumns.length > 0) {
       const attributes: Record<string, string | number> = {};
       let hasValue = false;
@@ -183,13 +185,15 @@ export function aggregation(input: AggregationInput): Result {
   ];
 
   // ---- comments(抽出に使われたコメントのみ) ----
-  const usefulCommentIds = new Set(commentIdByArgId.values());
-  const commentsMap: Record<string, { comment: string }> = {};
-  for (const comment of comments) {
-    if (project.enableOriginalComments === true && usefulCommentIds.has(comment.commentId)) {
-      commentsMap[comment.commentId] = { comment: comment.body };
-    }
-  }
+  const usefulCommentIds = new Set(table.argIds.flatMap((argId) => [...(commentIdsByArgId.get(argId) ?? [])]));
+  const commentsMap =
+    project.enableOriginalComments === true
+      ? Object.fromEntries(
+          comments
+            .filter(({ commentId }) => usefulCommentIds.has(commentId))
+            .map(({ commentId, body }) => [commentId, { comment: body }]),
+        )
+      : {};
 
   // ---- propertyMap ----
   // biome-ignore lint/suspicious/noExplicitAny: 本家互換
@@ -197,7 +201,7 @@ export function aggregation(input: AggregationInput): Result {
   for (const col of project.attributeColumns) {
     const map: Record<string, string | null> = {};
     for (const argId of table.argIds) {
-      const commentId = commentIdByArgId.get(argId) ?? "";
+      const commentId = commentIdsByArgId.get(argId)?.values().next().value ?? "";
       const value = commentById.get(commentId)?.attributes[col];
       map[argId] = value !== undefined && value !== "" ? value : null;
     }

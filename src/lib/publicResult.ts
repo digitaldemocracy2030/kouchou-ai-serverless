@@ -1,7 +1,8 @@
 import type { Result, ResultConfig } from "../types/result";
+import { commentSourceFields, readCommentIds } from "./opinionSources";
 
-// 本体 public_result.json schema_version=1 の公開フィールドだけを写す。
-const ARGUMENT_KEYS = ["arg_id", "argument", "comment_id", "x", "y", "p", "cluster_ids", "attributes", "url"] as const;
+// 本体 public_result.json schema_version=2 の公開フィールドだけを写す。
+const ARGUMENT_KEYS = ["arg_id", "argument", "x", "y", "p", "cluster_ids", "attributes", "url"] as const;
 const CLUSTER_KEYS = ["level", "id", "label", "takeaway", "value", "parent", "density_rank_percentile"] as const;
 const CONFIG_KEYS = [
   "question",
@@ -41,14 +42,20 @@ export function buildPublicResult(result: Result): Result {
   }
   if (Array.isArray(source.plan)) config.plan = source.plan.map((item) => pick(item, ["step", "run", "reason"]));
   const hidden = new Set(Object.keys(result.config?.hierarchical_aggregation?.hidden_properties ?? {}));
+  const linkedIds = new Set<string>();
+  const args = result.arguments.map((arg) => {
+    const ids = readCommentIds(arg);
+    for (const id of ids) linkedIds.add(id);
+    return { ...pick(arg, ARGUMENT_KEYS), ...commentSourceFields(ids) };
+  });
   return {
-    schema_version: 1,
-    arguments: result.arguments.map((arg) => pick(arg, ARGUMENT_KEYS)) as unknown as Result["arguments"],
+    schema_version: 2,
+    arguments: args as unknown as Result["arguments"],
     clusters: result.clusters.map((cluster) => pick(cluster, CLUSTER_KEYS)) as unknown as Result["clusters"],
     comments: includeComments
       ? Object.fromEntries(
           Object.entries(result.comments ?? {})
-            .filter(([, value]) => typeof value?.comment === "string")
+            .filter(([id, value]) => linkedIds.has(id) && typeof value?.comment === "string")
             .map(([id, value]) => [id, { comment: value.comment }]),
         )
       : {},

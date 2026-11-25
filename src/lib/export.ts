@@ -1,5 +1,6 @@
 import type { CommentRow, EmbeddingResult, ExtractionResult } from "../types/project";
 import type { Result } from "../types/result";
+import { commentSourceFields, readCommentIds } from "./opinionSources";
 import { restoreAnswerReferences } from "./pipeline/restoreReferences";
 import { buildPublicResult } from "./publicResult";
 
@@ -23,11 +24,31 @@ export function exportResultJson(result: Result): void {
 
 /** Result JSON のインポート(本家産含む)。最低限のスキーマ検証を行う。 */
 export function parseResultJson(text: string): Result {
-  const obj = JSON.parse(text);
+  const obj = JSON.parse(text, (key, value, context?: { source?: string }) => {
+    // 旧レポートの大きな整数IDを JS の Number に丸める前の桁で取得する。
+    if (
+      key === "comment_id" &&
+      typeof value === "number" &&
+      !Number.isSafeInteger(value) &&
+      context?.source &&
+      /^-?\d+$/.test(context.source)
+    ) {
+      return context.source;
+    }
+    return value;
+  });
   if (!obj || typeof obj !== "object") throw new Error("JSON がオブジェクトではありません");
   if (!Array.isArray(obj.arguments) || !Array.isArray(obj.clusters)) {
     throw new Error("Result JSON ではありません(arguments / clusters がない)");
   }
+  obj.arguments = obj.arguments.map((argument: unknown) => {
+    if (!argument || typeof argument !== "object" || Array.isArray(argument)) {
+      throw new Error("Result JSON の意見はオブジェクトである必要があります");
+    }
+    const { comment_ids: _inputRefs, ...fields } = argument as Record<string, unknown>;
+    const ids = readCommentIds(argument);
+    return { ...fields, ...commentSourceFields(ids) };
+  });
   if (typeof obj.overview !== "string") obj.overview = "";
   if (!obj.comments || typeof obj.comments !== "object") obj.comments = {};
   if (!obj.propertyMap) obj.propertyMap = {};
@@ -156,7 +177,7 @@ export type ProjectMeta = {
 };
 
 export type PreprocessedData = {
-  formatVersion: 2;
+  formatVersion?: 1 | 2 | 3;
   type: "kouchou-ai-preprocessed";
   project: ProjectMeta;
   extraction: ExtractionResult;
@@ -174,7 +195,7 @@ export function serializePreprocessed(
 ): string {
   const bytes = new Uint8Array(embedding.vectors.buffer, embedding.vectors.byteOffset, embedding.vectors.byteLength);
   const data: PreprocessedData = {
-    formatVersion: 2,
+    formatVersion: 3,
     type: "kouchou-ai-preprocessed",
     project,
     extraction,
@@ -206,10 +227,13 @@ export function parsePreprocessed(text: string): {
   if (!data.project || !data.extraction || !data.embedding) throw new Error("前処理データが不完全です");
   const bytes = base64ToBytes(data.embedding.vectorsBase64);
   const vectors = new Float32Array(bytes.buffer, 0, bytes.byteLength / 4);
-  return {
-    project: data.project,
-    ...restoreAnswerReferences(data.extraction, { argIds: data.embedding.argIds, dim: data.embedding.dim, vectors }),
-  };
+  const embedding = { argIds: data.embedding.argIds, dim: data.embedding.dim, vectors };
+  // 旧版の回答横断集約だけを修復し、v3の意図した多対多は保持する。
+  const restored =
+    data.formatVersion === 3
+      ? { extraction: data.extraction, embedding }
+      : restoreAnswerReferences(data.extraction, embedding);
+  return { project: data.project, ...restored };
 }
 
 function bytesToBase64(bytes: Uint8Array): string {
